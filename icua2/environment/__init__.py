@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import List, Any
 from blinker import signal
 from svgrenderengine.engine import SVGApplication
@@ -12,8 +13,7 @@ class Environment:
 
         self._execute_signal = signal("execute")
         self._execute_signal.connect(self.execute)
-
-        self._action_responses = {}
+        self._action_responses = defaultdict(list)
 
     def execute(
         self, sender: str, action: QueryEvent = None, actions: List[QueryEvent] = None
@@ -30,9 +30,12 @@ class Environment:
             assert actions is None  # should not be receiving both action and actions...
             actions = [action]
         if not actions is None:
-            self._action_responses[sender] = [
-                self.application.query(action) for action in actions
-            ]
+            for action in actions:
+                response = self.application.query(action)
+                if isinstance(response, (list, tuple)):
+                    self._action_responses[sender].extend(response)
+                else:
+                    self._action_responses[sender].append(response)
         else:
             raise ValueError(
                 f"execute recieved None from sender: {sender}"
