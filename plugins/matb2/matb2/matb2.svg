@@ -1,0 +1,33 @@
+<svg id="{{root.id}}" width="{{root.width}}" height="{{root.height}}" xmlns="http://www.w3.org/2000/svg">
+    
+    <rect width="{{root.width}}" height="{{root.height}}" fill="{{root.fill}}" />
+    <g font-family="Arial" font-size="{{root.font_size}}" >
+
+    {% set wlx = root.margin %}
+    {% set wly = root.margin %}
+    
+    <!-- warning light 2 -->
+    <rect id="warning-light-1" x="{{warning_lights.0.x}}"  y="{{warning_lights.0.y}}" width="{{warning_lights.0.width}}" height="{{warning_lights.0.height}}" fill="{{[warning_lights.0.accept_color, warning_lights.0.reject_color][warning_lights.0.state]}}" stroke="{{warning_lights.0.stroke_color}}" stroke-width="{{warning_lights.0.stroke_width}}" />
+    
+    <text x="{{warning_lights.0.x - root.font_size / 2 + warning_lights.0.width / 2}}"  y="{{warning_lights.0.y + warning_lights.0.height / 2}}" fill="{{warning_lights.0.stroke_color}}" stroke="{{warning_lights.0.stroke_color}}">F4</text>
+
+   
+
+
+    <!-- Segment dividers for vertical rectangles -->
+    <g fill="none" stroke="black" stroke-width="1">
+        {% for j in range(0, 4)  %}
+            {% set swidth = root.width / 8 %}
+            {% set sheight = root.height * 3/4 %}
+
+            <!-- Vertical rectangle -->
+            <rect id="slider-{{j}}" x="{{ root.margin }}" y="{{ root.height - sheight}}" width="{{swidth}}" height="{{sheight}}" fill="#add9e6"/>
+            
+        {% endfor %}
+    </g>
+
+
+
+    </g>
+
+</svg>
