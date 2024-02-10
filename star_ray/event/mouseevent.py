@@ -37,6 +37,19 @@ class MouseButtonEvent(Event):
     ) -> "MouseButtonEvent":
         return MouseButtonEvent(*astuple(Event.new()), button, position, status, target)
 
+    @staticmethod
+    def status_from_string(value: str) -> int:
+        if "release" in value or value == "up":
+            return MouseButtonEvent.UP
+        elif "press" in value or value == "down":
+            return MouseButtonEvent.DOWN
+        elif "click" in value:
+            return MouseButtonEvent.CLICK
+        else:
+            raise ValueError(
+                f"Failed to convert status string: {value}, valid values include: ['released', 'pressed', 'clicked', 'up', 'down']"
+            )
+
 
 @dataclass
 class MouseMotionEvent(Event):
@@ -57,4 +70,4 @@ class MouseMotionEvent(Event):
 
     @staticmethod
     def new(position: tuple, relative: tuple, target: str = None) -> "MouseMotionEvent":
-        return MouseMotionEvent(*astuple(Event.new()), relative, position, target)
+        return MouseMotionEvent(*astuple(Event.new()), position, relative, target)

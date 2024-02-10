@@ -3,11 +3,11 @@
 import ray
 import random
 
-from icua2.environment import Environment, Ambient
-from icua2.environment.xml import XMLAmbient, QueryXPath, QueryXML
-from icua2.event.responseevent import Response
-from icua2.plugin.pygame import SVGAvatar
-from icua2.event import *
+from star_ray.environment import Environment, Ambient
+from star_ray.environment.xml import XMLAmbient, QueryXPath, QueryXML
+from star_ray.event.responseevent import Response
+from star_ray.plugin.pygame import SVGAvatar
+from star_ray.event import *
 
 XML = """<svg id="root" width="640" height="640" xmlns="http://www.w3.org/2000/svg">
     <!-- Background rectangle -->
@@ -61,7 +61,7 @@ class MouseTrackerAmbient(XMLAmbient):
         return response
 
     def _handle_mouse_button_event(self, query: MouseButtonEvent):
-        if query.status == "released":
+        if query.status == MouseButtonEvent.UP:
             select_query = QueryXML.new("circle", ["r"])
             radius = self.__query__(select_query).data["circle"]["r"]
             delta = (query.button - 2) * 10

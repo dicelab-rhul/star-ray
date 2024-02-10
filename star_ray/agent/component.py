@@ -1,11 +1,11 @@
-from abc import abstractmethod, ABCMeta
-from typing import List
 import uuid
+from abc import ABCMeta
+from typing import List
 from functools import wraps
 
 import ray
 
-from icua2.event.event import Event
+from ..event import Event
 
 
 class Component(metaclass=ABCMeta):

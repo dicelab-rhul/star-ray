@@ -1,9 +1,13 @@
 from abc import abstractmethod, ABCMeta
 import uuid
+from typing import List
+from .component import Sensor, Actuator
 
 
 class Agent(metaclass=ABCMeta):
-    def __init__(self, sensors, actuators, *args, **kwargs):
+    def __init__(
+        self, sensors: List[Sensor], actuators: List[Actuator], *args, **kwargs
+    ):
         super().__init__(*args, **kwargs)
         self._id = str(uuid.uuid4())
         self.sensors = sensors

@@ -1,4 +1,5 @@
 """ Module defining the [Event] class."""
+
 import uuid
 from dataclasses import dataclass
 import time
@@ -25,4 +26,8 @@ class Event:
         Returns:
             Event: A new instance of the Event class with a unique ID and a timestamp.
         """
-        return Event(id=str(uuid.uuid4()), timestamp=time.time())
+        return Event(id=Event.new_uuid(), timestamp=time.time())
+
+    @staticmethod
+    def new_uuid() -> str:
+        return str(uuid.uuid4())

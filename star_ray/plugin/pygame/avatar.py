@@ -1,10 +1,10 @@
 from typing import List
 import ray
-from icua2.agent import Agent, Sensor, Actuator
-from icua2.environment.xml import QueryXML
-from icua2.event import Event
+from star_ray.agent import Agent, Sensor, Actuator
+from star_ray.environment.xml import QueryXML
+from star_ray.event import Event
 
-from icua2.plugin.pygame import PygameView
+from star_ray.plugin.pygame import PygameView
 
 
 class _SVGSensor(Sensor):
