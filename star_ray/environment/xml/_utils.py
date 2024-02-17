@@ -1,4 +1,5 @@
 """ Some utility functions for querying XML."""
+
 import ast
 import html
 from lxml import etree as ET
@@ -15,7 +16,6 @@ def _xml_to_primitive(value: str):
 
 
 def _tostring(element: ET._Element, unescape: bool = True, with_tail: bool = False):
-    """TODO"""
     result = ET.tostring(
         element,
         encoding=str,

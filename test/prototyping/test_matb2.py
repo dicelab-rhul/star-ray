@@ -1,5 +1,5 @@
-from icua2 import Environment
-from icua2.application.matb2 import Matb2, Matb2Avatar, Matb2Agent
+from star_ray import Environment
+from star_ray.application.matb2 import Matb2, Matb2Avatar, Matb2Agent
 
 
 app = Matb2()

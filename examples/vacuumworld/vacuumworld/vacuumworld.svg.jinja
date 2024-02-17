@@ -1,0 +1,134 @@
+<svg id="root" width="100%" height="100%" viewBox="0 0 9 9" xmlns="http://www.w3.org/2000/svg">
+
+    <!-- define style variables -->
+    <style>
+        :root {
+            --primary-color: #FFFFFF;
+            --secondary-color: #000000;
+        }
+
+        .orange {
+            --primary-color: #fe7e0f;
+            --secondary-color: #b1580a;
+        }
+
+        .green {
+            --primary-color: #87c830;
+            --secondary-color: #5e8c21;
+        }
+
+        .white {
+            --primary-color: #FFFFFF;
+            --secondary-color: #000000;
+        }
+    </style>
+
+    <def>
+        <!-- define the dirt symbol for reuse -->
+
+        <symbol id="dirt" viewBox="0 0 200 200" width="1" height="1">
+            <circle cx="60" cy="52" r="40" fill="var(--primary-color)" stroke="var(--secondary-color)"
+                stroke-width="4" />
+            <circle cx="150" cy="100" r="30" fill="var(--primary-color)" stroke="var(--secondary-color)"
+                stroke-width="4" />
+            <circle cx="70" cy="152" r="36" fill="var(--primary-color)" stroke="var(--secondary-color)"
+                stroke-width="4" />
+        </symbol>
+        <!-- define the agent symbol for reuse -->
+
+        <symbol id="agent" width="1" height="1" viewBox="0 0 200 200">
+            <!-- Antenna with light -->
+            <line x1="70" y1="30" x2="70" y2="10" stroke="var(--secondary-color)" stroke-width="4" />
+            <circle cx="70" cy="10" r="5" fill="#FFD700" />
+
+            <!-- Main body -->
+            <circle cx="100" cy="100" r="80" fill="var(--primary-color)" stroke="var(--secondary-color)"
+                stroke-width="4" />
+
+            <!-- Detail lines on body -->
+            <circle cx="100" cy="100" r="60" fill="transparent" stroke="var(--secondary-color)" stroke-width="4" />
+            <circle cx="100" cy="100" r="40" fill="transparent" stroke="var(--secondary-color)" stroke-width="4" />
+
+            <!-- Center sensor -->
+            <circle cx="100" cy="70" r="10" fill="var(--secondary-color)" />
+
+            <!-- Primary Wheels -->
+            <rect x="10" y="80" width="20" height="40" rx="10" fill="#404040" />
+            <rect x="170" y="80" width="20" height="40" rx="10" fill="#404040" />
+
+            <!-- Additional details -->
+            <!-- Top pattern for texture -->
+            <circle cx="100" cy="40" r="5" fill="var(--secondary-color)" />
+            <circle cx="110" cy="50" r="5" fill="var(--secondary-color)" />
+            <circle cx="90" cy="50" r="5" fill="var(--secondary-color)" />
+        </symbol>
+
+    </def>
+
+    <rect x="0" y="0" width="8" height="8" fill="white" />
+    <!-- Create grid lines using a for loop -->
+
+    <line x1="0" y1="0" x2="0" y2="8" stroke="black" stroke-width="0.01" />
+
+    <line x1="1" y1="0" x2="1" y2="8" stroke="black" stroke-width="0.01" />
+
+    <line x1="2" y1="0" x2="2" y2="8" stroke="black" stroke-width="0.01" />
+
+    <line x1="3" y1="0" x2="3" y2="8" stroke="black" stroke-width="0.01" />
+
+    <line x1="4" y1="0" x2="4" y2="8" stroke="black" stroke-width="0.01" />
+
+    <line x1="5" y1="0" x2="5" y2="8" stroke="black" stroke-width="0.01" />
+
+    <line x1="6" y1="0" x2="6" y2="8" stroke="black" stroke-width="0.01" />
+
+    <line x1="7" y1="0" x2="7" y2="8" stroke="black" stroke-width="0.01" />
+
+
+    <line x1="0" y1="0" x2="8" y2="0" stroke="black" stroke-width="0.01" />
+
+    <line x1="0" y1="1" x2="8" y2="1" stroke="black" stroke-width="0.01" />
+
+    <line x1="0" y1="2" x2="8" y2="2" stroke="black" stroke-width="0.01" />
+
+    <line x1="0" y1="3" x2="8" y2="3" stroke="black" stroke-width="0.01" />
+
+    <line x1="0" y1="4" x2="8" y2="4" stroke="black" stroke-width="0.01" />
+
+    <line x1="0" y1="5" x2="8" y2="5" stroke="black" stroke-width="0.01" />
+
+    <line x1="0" y1="6" x2="8" y2="6" stroke="black" stroke-width="0.01" />
+
+    <line x1="0" y1="7" x2="8" y2="7" stroke="black" stroke-width="0.01" />
+
+
+    <!-- Create dirts in the grid -->
+
+    <use id=dirt-0 href="#dirt" x="2" y="1" class="orange" transform="rotate(180, 2.5, 1.5)" />
+
+    <use id=dirt-1 href="#dirt" x="5" y="4" class="orange" transform="rotate(90, 5.5, 4.5)" />
+
+    <use id=dirt-2 href="#dirt" x="3" y="5" class="orange" transform="rotate(90, 3.5, 5.5)" />
+
+    <use id=dirt-3 href="#dirt" x="5" y="1" class="green" transform="rotate(270, 5.5, 1.5)" />
+
+    <use id=dirt-4 href="#dirt" x="7" y="0" class="orange" transform="rotate(270, 7.5, 0.5)" />
+
+    <use id=dirt-5 href="#dirt" x="2" y="0" class="orange" transform="rotate(180, 2.5, 0.5)" />
+
+
+    <!-- Create agents in the grid -->
+
+    <use id=agent-0 href="#agent" x="7" y="3" class="green" transform="rotate(180, 7.5, 3.5)" />
+
+    <use id=agent-1 href="#agent" x="4" y="1" class="orange" transform="rotate(90, 4.5, 1.5)" />
+
+    <use id=agent-2 href="#agent" x="5" y="6" class="white" transform="rotate(270, 5.5, 6.5)" />
+
+    <use id=agent-3 href="#agent" x="1" y="6" class="green" transform="rotate(180, 1.5, 6.5)" />
+
+    <use id=agent-4 href="#agent" x="4" y="7" class="green" transform="rotate(270, 4.5, 7.5)" />
+
+    <use id=agent-5 href="#agent" x="3" y="0" class="white" transform="rotate(270, 3.5, 0.5)" />
+
+</svg>

@@ -5,17 +5,21 @@ import ray
 class Ambient(metaclass=ABCMeta):
     def __init__(self, agents, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.agents = agents
+        self._agents = agents
 
     def get_agents(self):
-        return self.agents
+        return self._agents
 
     @abstractmethod
-    def __query__(self, query):
+    def __select__(self, query):
+        pass
+
+    @abstractmethod
+    def __update__(self, query):
         pass
 
     def kill(self):
-        for agent in self.agents:
+        for agent in self._agents:
             if isinstance(agent, ray.actor.ActorHandle):
                 ray.kill(agent, no_restart=True)
-        self.agents.clear()
+        self._agents.clear()

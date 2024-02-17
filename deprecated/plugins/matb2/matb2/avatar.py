@@ -1,6 +1,6 @@
 from typing import List
+import lxml.etree as ET
 import ray
-from lxml import etree as ET
 from star_ray.agent import Agent, Sensor, Actuator
 from star_ray.environment.xml import QueryXML
 from star_ray.event import Event
@@ -10,10 +10,7 @@ from star_ray.plugin.pygame import PygameView
 
 class _SVGSensor(Sensor):
     def __sense__(self, *args, **kwargs) -> List[Event]:
-        return [
-            QueryXML.new(self.id, "root", []),
-            QueryXML.new(self.id, "root", ["width", "height"]),
-        ]
+        return [QueryXML.new("root", []), QueryXML.new("root", ["width", "height"])]
 
 
 class _PygameActuator(Actuator):
@@ -22,7 +19,7 @@ class _PygameActuator(Actuator):
         return event
 
 
-@ray.remote(max_restarts=0, max_task_retries=0)
+@ray.remote
 class SVGAvatar(Agent):
     def __init__(self):
         super().__init__([_SVGSensor()], [_PygameActuator()])
@@ -35,17 +32,12 @@ class SVGAvatar(Agent):
 
     def __cycle__(self):
         perceptions = self.sensors[0].get()
-        if not perceptions[0].success:
-            raise ValueError(
-                "Failed to get svg root for rendering, did you forget to use the id tag? <svg id='root' ...>"
-            )
 
         svg_percept, size_percept = (
             perceptions
             if isinstance(perceptions[0].data["root"], str)
             else perceptions[::-1]
         )
-
         svg_code = svg_percept.data["root"]
         svg_size = (
             size_percept.data["root"]["width"],

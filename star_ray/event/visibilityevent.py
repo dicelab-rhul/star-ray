@@ -17,7 +17,8 @@ class VisibilityEvent(Event):
 
     Attributes:
         id (str): A unique identifier for the event, represented as a string (inherited).
-        timestamp (float): The UNIX timestamp (in seconds) when the event instance is created (inherited).        position (tuple): The (x, y) coordinates of the mouse event.
+        timestamp (float): The UNIX timestamp (in seconds) when the event instance is created (inherited).
+        source ([str]): A unique identifier for the source of this event, represented as a string (inherited).
         status ([int]): the visibility status (VISIBLE = 0, HIDDEN = 1).
     """
 
@@ -28,13 +29,13 @@ class VisibilityEvent(Event):
     HIDDEN: ClassVar[int] = 1
 
     @staticmethod
-    def new(visibility: int) -> "VisibilityEvent":
-        return VisibilityEvent(*astuple(Event.new()), visibility)
+    def new(source: str, visibility: int) -> "VisibilityEvent":
+        return VisibilityEvent(*astuple(Event.new(source)), visibility)
 
     @staticmethod
-    def new_visible() -> "VisibilityEvent":
-        return VisibilityEvent(*astuple(Event.new()), VisibilityEvent.VISIBLE)
+    def new_visible(source: str) -> "VisibilityEvent":
+        return VisibilityEvent(*astuple(Event.new(source)), VisibilityEvent.VISIBLE)
 
     @staticmethod
-    def new_hidden() -> "VisibilityEvent":
-        return VisibilityEvent(*astuple(Event.new()), VisibilityEvent.HIDDEN)
+    def new_hidden(source: str) -> "VisibilityEvent":
+        return VisibilityEvent(*astuple(Event.new(source)), VisibilityEvent.HIDDEN)

@@ -7,7 +7,7 @@ import ray
 
 ray.init()
 
-from icua2.agent import Agent, Sensor, Actuator
+from star_ray.agent import Agent, Sensor, Actuator
 
 
 class MyPassiveSensor(Sensor):
