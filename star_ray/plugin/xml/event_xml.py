@@ -11,9 +11,9 @@ class QueryXML(QueryXPath):
 
     @staticmethod
     def new(
-        source: str, element_id: str, attributes: List[str] | Dict[str, Any]
+        source: str, element_id: str, attributes: str | List[str] | Dict[str, Any]
     ) -> "QueryXML":
-        assert isinstance(attributes, (list, dict))
+        assert isinstance(attributes, (list, dict, str))
         xpath = f"//*[@id='{element_id}']"
         return QueryXML(*astuple(QueryXPath.new(source, xpath, attributes)))
 

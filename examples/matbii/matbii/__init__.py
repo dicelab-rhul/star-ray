@@ -19,8 +19,7 @@ from jinja2 import Template
 
 
 from star_ray.environment import Environment, Ambient
-from star_ray.environment.xml import XMLAmbient, QueryXPath, QueryXML
-from star_ray.environment.xml.xml_state import XMLState
+from star_ray.plugin.xml import XMLAmbient, QueryXPath, QueryXML, XMLState
 from star_ray.event.responseevent import Response
 from star_ray.plugin.pygame import SVGAvatar
 from star_ray.event import *
@@ -33,27 +32,9 @@ _LOGGER = logging.getLogger(__package__)
 NAMESPACES = {"svg": "http://www.w3.org/2000/svg"}
 
 
-@dataclass
-class Sense(Event):
-    name: str
-
-    @staticmethod
-    def new(source, name):
-        return Sense(*astuple(Event.new(source)), name)
-
-
-@dataclass
-class Action(Event):
-    name: str
-    label: str
-
-    @staticmethod
-    def new(source, name, label):
-        return Action(*astuple(Event.new(source)), name, label)
-
-
 @ray.remote
 class MatBIIAvatar(WebSVGAvatar):
+
     pass
 
 

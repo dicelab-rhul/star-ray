@@ -1,5 +1,5 @@
 # pylint: disable=E1101
-from star_ray.environment.xml import QueryXML, XMLAmbient
+from star_ray.plugin.xml import QueryXML, XMLAmbient
 from star_ray.event.listener import change_listener
 import unittest
 

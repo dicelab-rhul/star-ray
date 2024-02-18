@@ -32,8 +32,16 @@ def change_listener(cls):
     # Store original __update__ for wrapping
     original_update = cls.__update__
 
-    # Add the _change_listeners field
-    cls._change_listeners = {}
+    # Store original __init__ for wrapping
+    original_init = cls.__init__
+
+    # Define a new __init__ method that modifies instance-level fields
+    def __init_wrapper(self, *args, **kwargs):
+        # Call the original __init__ method
+        original_init(self, *args, **kwargs)
+        self._change_listeners = {}
+
+    cls.__init__ = __init_wrapper
 
     # Define the add_change_listener method
     def add_change_listener(self, listener: Callable) -> int:

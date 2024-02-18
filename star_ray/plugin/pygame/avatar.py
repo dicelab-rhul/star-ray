@@ -1,11 +1,10 @@
 from typing import List
 import ray
-from lxml import etree as ET
-from star_ray.agent import Agent, Sensor, Actuator
-from star_ray.environment.xml import QueryXML
-from star_ray.event import Event
+from .view import PygameView
+from ..xml import QueryXML
 
-from star_ray.plugin.pygame import PygameView
+from ...agent import Agent, Sensor, Actuator
+from ...event import Event
 
 
 class _SVGSensor(Sensor):
