@@ -3,8 +3,8 @@
 from dataclasses import astuple
 from typing import List, Dict, Any
 
-from .event_xpath import QueryXPath
-from ...event import ResponseError, ResponseSelect, ResponseUpdate
+from .query_xpath import QueryXPath
+from ...event import ErrorResponse, SelectResponse, UpdateResponse
 
 
 class QueryXML(QueryXPath):
@@ -17,12 +17,12 @@ class QueryXML(QueryXPath):
         xpath = f"//*[@id='{element_id}']"
         return QueryXML(*astuple(QueryXPath.new(source, xpath, attributes)))
 
-    def __select__(self, *args, **kwargs) -> ResponseSelect | ResponseError:
+    def __select__(self, *args, **kwargs) -> SelectResponse | ErrorResponse:
         # TODO catch exceptions here
         response = super().__select__(*args, **kwargs)
         return _validate_select_response(response, self)
 
-    def __update__(self, *args, **kwargs) -> ResponseUpdate | ResponseError:
+    def __update__(self, *args, **kwargs) -> UpdateResponse | ErrorResponse:
         # TODO catch exceptions here
         return super().__update__(*args, **kwargs)
 
@@ -36,15 +36,19 @@ class QueryXML(QueryXPath):
         return self.xpath[9:-2]
 
 
-def _validate_select_response(response: ResponseSelect, query: QueryXPath):
+def _validate_xml_element_length(query: QueryXML, values: List[Any]):
+    if len(values) == 0:
+        raise ValueError(
+            f"No element was found with xpath query: {query.xpath}, there was no element with id='{query.element_id}'"
+        )
+    if len(values) > 1:
+        raise ValueError(
+            f"More than one element was found with xpath query {query.xpath}, 'id' should be a unique identifier."
+        )
+
+
+def _validate_select_response(response: SelectResponse, query: QueryXPath):
     if response.success:
-        if len(response.values) == 0:
-            raise ValueError(
-                f"No element was found with xpath query: {query.xpath}, there was no element with id='{query.element_id}'"
-            )
-        if len(response.values) > 1:
-            raise ValueError(
-                f"More than one element was found with xpath query {query.xpath}, 'id' should be a unique identifier."
-            )
-        response.data = (query.element_id, response.data[0])
+        _validate_xml_element_length(query, response.values)
+        response.data = (query.element_id, response.values[0])
     return response

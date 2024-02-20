@@ -1,7 +1,7 @@
 from typing import Dict
 from lxml import etree as ET
-from .event_xpath import QueryXPath
-from ...event import ResponseError, ResponseSelect, ResponseUpdate
+from .query_xpath import QueryXPath
+from ...event import ErrorResponse, SelectResponse, UpdateResponse
 
 
 class XMLState:
@@ -23,10 +23,10 @@ class XMLState:
         self._root = ET.fromstring(xml)  # pylint: disable=I1101
         self._namespaces = dict() if namespaces is None else namespaces
 
-    def __select__(self, query: QueryXPath) -> ResponseSelect | ResponseError:
+    def __select__(self, query: QueryXPath) -> SelectResponse | ErrorResponse:
         # TODO this is a read only query and can be executed in parallel
         return query.__select__("environment", self._root, namespaces=self._namespaces)
 
-    def __update__(self, query: QueryXPath) -> ResponseUpdate | ResponseError:
+    def __update__(self, query: QueryXPath) -> UpdateResponse | ErrorResponse:
         # TODO this is a write query
         return query.__update__("environment", self._root, namespaces=self._namespaces)

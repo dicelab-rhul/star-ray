@@ -1,5 +1,5 @@
 import uuid
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 from typing import List
 from functools import wraps
 
@@ -19,10 +19,24 @@ class Component(metaclass=ABCMeta):
     def id(self):
         return self._id
 
+    @abstractmethod
     def __query__(self, ambient):
+        pass
+
+    def __update__(self, ambient):
         if isinstance(ambient, ray.actor.ActorHandle):
             self._object_refs = [
-                ambient.__query__.remote(query) for query in self._queries
+                ambient.__update__.remote(query) for query in self._queries
+            ]
+        else:
+            self._object_refs = [ambient.__query__(query) for query in self._queries]
+        # clear queries ready for the next cycle
+        self._queries.clear()
+
+    def __select__(self, ambient):
+        if isinstance(ambient, ray.actor.ActorHandle):
+            self._object_refs = [
+                ambient.__select__.remote(query) for query in self._queries
             ]
         else:
             self._object_refs = [ambient.__query__(query) for query in self._queries]
@@ -44,7 +58,7 @@ class Component(metaclass=ABCMeta):
         @wraps(fun)
         def wrapper(self, *args, **kwargs):
             action = fun(self, *args, **kwargs)
-            self._queries.append(action)
+            self._queries.append(action)  # pylint: disable=W0212
             return action
 
         return wrapper
@@ -53,9 +67,9 @@ class Component(metaclass=ABCMeta):
 class Sensor(Component):
     def __query__(self, ambient):
         self._queries = self.__sense__()
-        super().__query__(ambient)
+        super().__select__(ambient)
 
-    def __sense__(self, *args, **kwargs) -> List[Event]:
+    def __sense__(self) -> List[Event]:
         return self._queries
 
     @staticmethod
@@ -66,9 +80,9 @@ class Sensor(Component):
 class Actuator(Component):
     def __query__(self, ambient):
         self._queries = self.__attempt__()
-        super().__query__(ambient)
+        super().__update__(ambient)
 
-    def __attempt__(self, *args, **kwargs) -> List[Event]:
+    def __attempt__(self) -> List[Event]:
         return self._queries
 
     @staticmethod

@@ -1,10 +1,17 @@
 import unittest
-from star_ray.environment.xml import XMLState, QueryXPath
+from star_ray.plugin.xml import XMLState, QueryXPath
 
 NAMESPACES = {"svg": "http://www.w3.org/2000/svg"}
 
 
 class TestXMLStateXPath(unittest.TestCase):
+
+    def test_select_with_str_error(self):
+        svg_code = """<svg id="root" xmlns="http://www.w3.org/2000/svg"> <rect id="rect-1" width="100"/> <rect id="rect-2" width="200"/> </svg>"""
+        app = XMLState(svg_code, namespaces=NAMESPACES)
+        query = QueryXPath.new("test", "//svg:rect", "bad value...")
+        result = app.__select__(query)
+
     def test_select_elements(self):
         svg_code = """<svg id="root" xmlns="http://www.w3.org/2000/svg"> <rect id="rect-1" width="100"/> <rect id="rect-2" width="200"/> </svg>"""
         app = XMLState(svg_code, namespaces=NAMESPACES)

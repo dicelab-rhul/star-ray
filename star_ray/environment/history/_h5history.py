@@ -137,6 +137,11 @@ class _HistoryH5Sync(_History):
                 dataset = file[self._dataset_name]
                 return self.deserialize(dataset[index])
 
+    def flush_all(self):
+        old_flush_proportion = self.flush_proportion
+        self.flush_proportion = 1
+        self.flush_buffer()
+        self.flush_proportion = old_flush_proportion
+
     def close(self):
-        if self.buffer:
-            self.flush_buffer()
+        self.flush_all()

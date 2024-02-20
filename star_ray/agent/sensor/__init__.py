@@ -1,3 +1,3 @@
-from .sensor_history import SensorHistory
+from .history_sensor import HistorySensor
 
-__all__ = ("SensorHistory",)
+__all__ = ("HistorySensor",)

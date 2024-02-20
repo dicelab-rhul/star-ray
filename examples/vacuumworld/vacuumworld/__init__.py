@@ -23,7 +23,7 @@ from star_ray.plugin.pygame import SVGAvatar
 from star_ray.event import *
 from star_ray.agent import Actuator, Sensor, Agent
 
-from star_ray_web import WebSVGAvatar
+from star_ray_web import WebXMLAvatar
 
 _LOGGER = logging.getLogger(__package__)
 
@@ -203,7 +203,7 @@ class VacuumWorldAgent(Agent):
 
 # this class inherits its functionality from super, this def just makes it remote
 @ray.remote
-class VacuumWorldAvatar(WebSVGAvatar):
+class VacuumWorldAvatar(WebXMLAvatar):
     pass
 
 

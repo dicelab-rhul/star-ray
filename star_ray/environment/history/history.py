@@ -3,9 +3,9 @@ from types import EllipsisType
 from datetime import datetime
 from dataclasses import dataclass, astuple, asdict, field
 import json
-from typing import List, Type, Optional
+from typing import List, Tuple, Type, Optional
 
-from star_ray.event.responseevent import ResponseSelect
+from star_ray.event.responseevent import SelectResponse
 from ...event import Event
 
 from ._history import _History
@@ -16,21 +16,21 @@ from ._h5history import _HistoryH5Sync
 class QueryHistory(Event):
 
     index: int | slice | EllipsisType
-    whitelist_types: Optional[List[Type]] = None
-    blacklist_types: Optional[List[Type]] = None
+    whitelist_types: Optional[Tuple[Type]] = None
+    blacklist_types: Optional[Tuple[Type]] = None
 
     @staticmethod
     def new(
         source: str,
         index: slice | int | EllipsisType = ...,
-        whitelist_types: Optional[List[Type]] = None,
-        blacklist_types: Optional[List[Type]] = None,
+        whitelist_types: Optional[List[Type] | Tuple[Type]] = None,
+        blacklist_types: Optional[List[Type] | Tuple[Type]] = None,
     ):
         return QueryHistory(
             *astuple(Event.new(source)),
             index=index,
-            whitelist_types=whitelist_types,
-            blacklist_types=blacklist_types,
+            whitelist_types=tuple(whitelist_types) if whitelist_types else None,
+            blacklist_types=tuple(blacklist_types) if blacklist_types else None,
         )
 
     def filter(self, queries):
@@ -133,18 +133,21 @@ class History:
         return self._new_response(query, slice(qa, None, None))
 
     def _new_response(self, query, index):
-        return ResponseSelect.new(
+        return SelectResponse.new(
             "environment",  # TODO maybe use an id instead?
             query,
             success=True,
-            data=self._history[index],
+            data=query.filter(self._history[index]),
         )
 
     def handle_history_query(self, query: QueryHistory):
         if query.index is ...:
-            return query.filter(self._handle_ellipsis(query))
+            return self._handle_ellipsis(query)
         else:
-            return query.filter(self._new_response(query, query.index))
+            return self._new_response(query, query.index)
+
+    def close(self):
+        self._history.close()
 
 
 def history(

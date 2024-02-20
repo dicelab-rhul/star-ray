@@ -1,5 +1,5 @@
 import unittest
-from star_ray.environment.xml import XMLState, QueryXML
+from star_ray.plugin.xml import XMLState, QueryXML
 
 NAMESPACES = {"svg": "http://www.w3.org/2000/svg"}
 

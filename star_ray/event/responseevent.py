@@ -20,16 +20,16 @@ class Response(Event):
 
 
 @dataclass
-class ResponseSelect(Response):
+class SelectResponse(Response):
     values: List[Any] | Dict[str, Any]
 
     @staticmethod
     def new(source: str, query: Event, success: bool, data: List[Any] | Dict[str, Any]):
-        return ResponseSelect(*astuple(Event.new(source)), query.id, success, data)
+        return SelectResponse(*astuple(Event.new(source)), query.id, success, data)
 
 
 @dataclass
-class ResponseUpdate(Response):
+class UpdateResponse(Response):
     # new_values: Optional[Dict[str, Any]] = field(default=None)
     # old_values: Optional[Dict[str, Any]] = field(default=None)
 
@@ -41,19 +41,19 @@ class ResponseUpdate(Response):
         # new_values: Optional[Dict[str, Any]] = None,
         # old_values: Optional[Dict[str, Any]] = None,
     ):
-        return ResponseUpdate(
+        return UpdateResponse(
             *astuple(Event.new(source)), query.id, success  # , new_values, old_values
         )
 
 
 @dataclass
-class ResponseError(Response):
+class ErrorResponse(Response):
     exception_type: str
     error_message: str
     stack_trace: str
 
     @staticmethod
-    def new(source: str, query: Event, success: bool, exception: Exception):
+    def new(source: str, query: Event, exception: Exception):
         exception_type = exception.__class__.__name__
         error_message = str(exception)
         stack_trace = "".join(
@@ -61,11 +61,15 @@ class ResponseError(Response):
                 type(exception), value=exception, tb=exception.__traceback__
             )
         )
-        return ResponseError(
+        return ErrorResponse(
             *astuple(Event.new(source)),
             query.id,
-            success,
+            False,
             exception_type,
             error_message,
             stack_trace,
         )
+
+    def __str__(self):
+        # TODO update this maybe? include all fields?
+        return f"ErrorResponse(\nsource={self.source},\nexception_type={self.exception_type},\nerror_message={self.error_message},\nstack_trace=\n{self.stack_trace})"
