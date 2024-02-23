@@ -21,7 +21,8 @@
         <!-- draw lights -->
         <g id="light-1">
             <rect id="light-1-button" x="{{padding}}" y="{{padding}}" width="{{light_width}}" height="{{light_height}}"
-                fill="#00ff00" stroke="#000000" stroke-width="{{stroke_width}}" />
+                fill="{{light_colors[light_state[0]]}}" stroke="#000000" stroke-width="{{stroke_width}}"
+                data-state="{{light_state[0]}}" data-colors="{{light_colors}}" />
             {% if show_keyboard_shortcuts %}
             <text x="{{padding + light_width/2 - (font_size - 4)}}" y="{{padding + light_width/2 - 8}}" fill="black"
                 font-size="{{font_size}}px">F5</text>
@@ -30,7 +31,8 @@
 
         <g id="light-2">
             <rect id="light-2" x="{{width - light_width - padding}}" y="{{padding}}" width="{{light_width}}"
-                height="{{light_height}}" fill="#ff0000" stroke-width="{{stroke_width}}" stroke="#000000" />
+                height="{{light_height}}" fill="{{light_colors[light_state[1]]}}" stroke-width="{{stroke_width}}"
+                stroke="#000000" data-state="{{light_state[1]}}" data-colors="{{light_colors}}" />
             {% if show_keyboard_shortcuts %}
             <text x="{{width - padding - light_width/2 - (font_size - 4)}}" y="{{padding + light_width/2 - 8}}"
                 fill="black" font-size="{{font_size}}px">F6</text>

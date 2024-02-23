@@ -1,28 +1,9 @@
 from typing import Optional, Any
 
 from star_ray.agent import Agent
-from star_ray.typing import Event, QueryXPath
+from star_ray.typing import Event, QueryXPath, QueryXMLTemplated
 
 from dataclasses import dataclass, astuple
-
-
-@dataclass
-class MATBIIQuery(Event):
-
-    element_id: str
-    state: Optional[Any] = None
-
-    @staticmethod
-    def update_warning_light1(source: str):
-        return MATBIIQuery(
-            *astuple(Event.new(source)), element_id=ID_LIGHT1, state=None
-        )
-
-    @staticmethod
-    def update_warning_light2(source: str):
-        return MATBIIQuery(
-            *astuple(Event.new(source)), element_id=ID_LIGHT2, state=None
-        )
 
 
 class MATBIIAgent(Agent):

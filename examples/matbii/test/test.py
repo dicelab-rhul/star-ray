@@ -1,4 +1,4 @@
-from star_ray_example_matbii import MATBIIEnvironment
+from star_ray_example_matbii import MATBIIEnvironment, QueryLight
 import time
 import ray
 
@@ -18,6 +18,7 @@ if __name__ == "__main__":
             # end_time = time.time()
             # elapsed_time = end_time - start_time
             # print(f"The function took {elapsed_time} seconds to complete.")
+            env._ambient.__update__.remote(QueryLight.new_toggle("test", 0))
     except Exception as e:
         raise e
     finally:

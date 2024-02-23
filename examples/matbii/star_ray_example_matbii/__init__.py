@@ -22,7 +22,13 @@ from ast import literal_eval
 
 from star_ray.typing import Event
 from star_ray.environment import Environment, Ambient
-from star_ray.plugin.xml import XMLAmbient, QueryXPath, QueryXML, XMLState
+from star_ray.plugin.xml import (
+    XMLAmbient,
+    QueryXPath,
+    QueryXML,
+    QueryXMLTemplated,
+    XMLState,
+)
 from star_ray.environment.history import history
 
 from .avatar_web import MATBIIAvatar
@@ -35,49 +41,23 @@ DEFAULT_SVG_TEMPLATE_DATA_PATH = Path(__file__).parent.joinpath("state.json")
 DEFAULT_SVG_TEMPLATE_PATH = Path(__file__).parent.joinpath("matbii.svg.jinja")
 
 
-@dataclass
-class VariableQuery(Event):
-    #  this is a template that will takes a single variable "{{state}}". After rendering this will be used as the new state of the given variable.
-    state: str
-
-    def render(self, state):
-        return literal_eval(Template(self.state).render(state=state))
-
-
-class Variable:
-
-    def __init__(
-        self,
-        name: str,
-        state: Any,
-        element_id: str,
-        attributes: Dict[str, str],
-    ):
-        self._name = name
-        self._state = state
-
-        self._element_id = element_id
-        self._attributes = {attr: Template(value) for attr, value in attributes.items()}
-
-    def to_xml_query(self, query: VariableQuery):
-        # this is the new state, it will now be used to update the XML backing variables
-        self._state = query.render(self._state)
-        # new attributes
-        attributes = {
-            attr: value.render(self._state) for attr, value in self._attributes.items()
-        }
-        return QueryXML.new(query.source, self._element_id, attributes=attributes)
-
-    @property
-    def name(self):
-        return self._name
-
-
 ID_LIGHT1 = "light-1"
 ID_LIGHT2 = "light-2"
 
 
-LIGHT_VARIABLE = Variable(ID_LIGHT1, 0, ID_LIGHT1, {"fill" : })
+@dataclass
+class QueryLight(QueryXMLTemplated):
+
+    @staticmethod
+    def new_toggle(source: str, light_index: int):
+        element_id = [ID_LIGHT1, ID_LIGHT2][light_index]
+        attributes = {
+            "data-state": "{{1-data_state}}",  # this will toggle "data-state" of the light
+            "fill": "{{data_colors[data_state]}}",  # this will set the light fill based on the data-colors attribute
+        }
+        return QueryLight(
+            *astuple(QueryXMLTemplated.new(source, element_id, attributes))
+        )
 
 
 @ray.remote
@@ -116,6 +96,7 @@ class MATBIIAmbient(XMLAmbient):
         super().kill()
 
     def __update__(self, query):
+        print(query)
         if isinstance(query, QueryXPath):
             super().__update__(query)
         pass  # super().__update__(query)

@@ -4,6 +4,14 @@
     "width": 260,
     "height": 360,
     "padding": 10,
+    "light_state": [
+        0,
+        0
+    ],
+    "light_colors": [
+        "#00ff00",
+        "#ff0000"
+    ],
     "light_width": 75,
     "light_height": 50,
     "slider_num_increments": 11,

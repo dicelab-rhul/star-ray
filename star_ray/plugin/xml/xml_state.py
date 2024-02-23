@@ -18,9 +18,14 @@ class XMLState:
     The `__update__` method handles write operations and modifies the XML state.
     """
 
-    def __init__(self, xml: str, namespaces: Dict[str, str] = None):
+    def __init__(
+        self, xml: str, namespaces: Dict[str, str] = None, parser: ET.XMLParser = None
+    ):
         super().__init__()
-        self._root = ET.fromstring(xml)  # pylint: disable=I1101
+        if parser is None:
+            parser = ET.XMLParser()
+        self._parser = parser
+        self._root = ET.fromstring(xml, parser=self._parser)  # pylint: disable=I1101
         self._namespaces = dict() if namespaces is None else namespaces
 
     def __select__(self, query: QueryXPath) -> SelectResponse | ErrorResponse:
@@ -29,4 +34,6 @@ class XMLState:
 
     def __update__(self, query: QueryXPath) -> UpdateResponse | ErrorResponse:
         # TODO this is a write query
-        return query.__update__("environment", self._root, namespaces=self._namespaces)
+        return query.__update__(
+            "environment", self._root, namespaces=self._namespaces, parser=self._parser
+        )

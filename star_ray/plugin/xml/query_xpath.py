@@ -38,10 +38,11 @@ class QueryXPath(Event):
         source: str,
         root: ET._Element,
         namespaces: Dict[str, str] = None,
+        parser: ET.XMLParser = None,
         **kwargs,
     ) -> UpdateResponse | ErrorResponse:
         if isinstance(self.attributes, dict | str):
-            return _update(source, root, self, namespaces=namespaces)
+            return _update(source, root, self, namespaces=namespaces, parser=parser)
         else:
             raise ValueError(
                 f"Invalid type {type(self.attributes)} for update query attributes."
@@ -83,13 +84,17 @@ def _update(
     root: ET._Element,
     query: "QueryXPath",
     namespaces: Dict[str, str] = None,
+    parser: ET.XMLParser = None,
     return_old_values: bool = False,
     return_new_values: bool = False,
 ):
     # gather elements from xpath query
     elements = root.xpath(query.xpath, namespaces=namespaces)
     # TODO updating multiple elements when there is an error may break the on_change... the response will not reflect the actual changes made?
-    _ = [_update_element(query, element, namespaces=namespaces) for element in elements]
+    _ = [
+        _update_element(query.attributes, element, namespaces=namespaces, parser=parser)
+        for element in elements
+    ]
     return UpdateResponse.new(source, query, success=True)
 
 
@@ -97,6 +102,7 @@ def _update_element(
     attributes: Dict[str, Any],
     element: Any,
     namespaces: Dict[str, str] = None,
+    parser: ET.XMLParser = None,
     return_old_values: bool = False,
     return_new_values: bool = False,
 ):
@@ -118,7 +124,9 @@ def _update_element(
             # result = _tostring(element)
             # this dummy root node allows namespacing to be handled correctly
             namespaced_xml = f"""<_dummy { ' '.join(f'xmlns:{k}="{v}"' for k,v in namespaces.items())}> {attributes} </_dummy>"""
-            namespaced_xml_node = next(iter(ET.fromstring(namespaced_xml)))
+            namespaced_xml_node = next(
+                iter(ET.fromstring(namespaced_xml, parser=parser))
+            )
             parent.replace(element, namespaced_xml_node)
             # return result
     elif isinstance(element, ET._ElementUnicodeResult):
