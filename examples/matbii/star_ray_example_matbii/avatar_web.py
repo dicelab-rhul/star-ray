@@ -1,7 +1,7 @@
 import ray
 
-from star_ray_web import WebXMLAvatar, get_default_template_data
-from star_ray.typing import QueryXPath
+from star_ray.plugin.web import WebXMLAvatar, get_default_template_data
+from star_ray.plugin.xml import QueryXPath, QueryXMLHistory, XMLHistorySensor
 
 from star_ray.agent.sensor import HistorySensor
 from star_ray.agent import Actuator
@@ -46,7 +46,6 @@ class MATBIIAvatar(WebXMLAvatar):
     def __cycle__(self):
         for percept in self.sensors[0].get():
             self.send(percept)
-            # print(percept)
 
         for event in self.receive():
             self.actuators[0].attempt(event)

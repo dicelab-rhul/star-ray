@@ -1,14 +1,28 @@
 from abc import ABCMeta, abstractmethod
 import ray
 
+from star_ray.utils import new_uuid
+
 
 class Ambient(metaclass=ABCMeta):
     def __init__(self, agents, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._id = new_uuid()
         self._agents = agents
 
+    @property
+    def id(self):
+        return self._id
+
+    def get_id(self):
+        return self.id
+
+    @property
+    def agents(self):
+        return list(self._agents)
+
     def get_agents(self):
-        return self._agents
+        return self.agents
 
     @abstractmethod
     def __select__(self, query):

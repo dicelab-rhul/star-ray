@@ -3,22 +3,11 @@ from typing import List
 import ray
 from ray.actor import ActorHandle
 
-from ..agent.agent import Agent
-
-
-# class _Utils:
-#     def split_list_by_type(items, type1, type2):
-#         list1, list2 = [], []
-#         for item in items:
-#             if isinstance(item, type1):
-#                 list1.append(item)
-#             elif isinstance(item, type2):
-#                 list2.append(item)
-#         return list1, list2
+from .ambient import Ambient
 
 
 class Environment:
-    def __init__(self, ambient, sync=True, *args, **kwargs):
+    def __init__(self, ambient: Ambient, sync: bool = True, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._ambient = ambient
 

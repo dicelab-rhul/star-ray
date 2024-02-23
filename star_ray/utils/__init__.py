@@ -1,5 +1,12 @@
 # from .logging import LOGGER, info, debug, warning, error, exception
 
-# __all__ = ("LOGGER", "info", "debug", "warning", "error", "exception")
+# _
+# _all__ = ("LOGGER", "info", "debug", "warning", "error", "exception")
 
-from .cls_utils import new_instance_local_or_remote
+from . import error
+from ._utils import new_uuid
+
+__all__ = (
+    "error",
+    "new_uuid",
+)

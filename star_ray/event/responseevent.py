@@ -1,5 +1,7 @@
-from dataclasses import dataclass, astuple, field
 import traceback
+
+
+from dataclasses import dataclass, astuple, field
 from typing import Dict, List, Any, Optional
 
 from ..event import Event
@@ -24,8 +26,12 @@ class SelectResponse(Response):
     values: List[Any] | Dict[str, Any]
 
     @staticmethod
-    def new(source: str, query: Event, success: bool, data: List[Any] | Dict[str, Any]):
-        return SelectResponse(*astuple(Event.new(source)), query.id, success, data)
+    def new(
+        source: str, query: Event | str, success: bool, data: List[Any] | Dict[str, Any]
+    ):
+        if isinstance(query, Event):
+            query = query.id
+        return SelectResponse(*astuple(Event.new(source)), query, success, data)
 
 
 @dataclass
@@ -36,13 +42,15 @@ class UpdateResponse(Response):
     @staticmethod
     def new(
         source: str,
-        query: Event,
+        query: Event | str,
         success: bool,
         # new_values: Optional[Dict[str, Any]] = None,
         # old_values: Optional[Dict[str, Any]] = None,
     ):
+        if isinstance(query, Event):
+            query = query.id
         return UpdateResponse(
-            *astuple(Event.new(source)), query.id, success  # , new_values, old_values
+            *astuple(Event.new(source)), query, success  # , new_values, old_values
         )
 
 

@@ -19,10 +19,11 @@ setup(
         "numpy",
         "numexpr",
         "omegaconf",
+        "h5py",
+        # "pylint",
     ],
     extras_require={
-        "eyetracking": [],
-        "web": [],
+        # "web": ["./plugins/web"], # TODO the relative path doesnt seem to work...
     },
     classifiers=[
         "Programming Language :: Python :: 3",

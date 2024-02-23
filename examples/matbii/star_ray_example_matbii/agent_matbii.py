@@ -1,9 +1,4 @@
-from typing import Optional, Any
-
 from star_ray.agent import Agent
-from star_ray.typing import Event, QueryXPath, QueryXMLTemplated
-
-from dataclasses import dataclass, astuple
 
 
 class MATBIIAgent(Agent):

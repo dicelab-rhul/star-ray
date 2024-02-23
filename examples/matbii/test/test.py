@@ -2,6 +2,8 @@ from star_ray_example_matbii import MATBIIEnvironment, QueryLight
 import time
 import ray
 
+import star_ray.plugin.xml as xml
+
 # from star_ray_example_matbii import MATBIIEnvironment
 
 if __name__ == "__main__":

@@ -17,6 +17,8 @@ from ast import (
     literal_eval,
 )
 
+__all__ = ("literal_eval_with_ops", "literal_eval")
+
 
 def literal_eval_with_ops(node_or_string):
     """
