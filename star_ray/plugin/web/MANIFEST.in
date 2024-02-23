@@ -1,0 +1,8 @@
+include star_ray_web/static/js/*.js
+include star_ray_web/static/js/*.js.jinja
+
+include star_ray_web/static/svg/*.svg
+include star_ray_web/static/svg/*.svg.jinja
+
+include star_ray_web/static/templates/*.html
+include star_ray_web/static/templates/*.html.jinja

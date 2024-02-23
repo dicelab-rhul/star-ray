@@ -1,0 +1,28 @@
+<script>
+    function post_input_event(route, data) {
+        fetch(route, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(_ => { }) // nothing to do here
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+</script>
+
+{% if handle_mouse_button %}
+{% include 'js/handle_mouse_button.js.jinja' %}
+{% endif %}
+
+{% if handle_mouse_motion %}
+{% include 'js/handle_mouse_motion.js.jinja' %}
+{% endif %}
+
+{% if handle_visibility %}
+{% include 'js/handle_visibility.js.jinja' %}
+{% endif %}

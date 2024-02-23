@@ -1,0 +1,17 @@
+<script>
+    function handleMouseMotion(event) {
+        var element = event.target;
+        var data = {
+            id: element.id,
+            type: element.tagName,
+            timestamp: event.timeStamp,
+            position: { x: event.clientX, y: event.clientY },
+            relative: { x: event.movementX, y: event.movementY },
+        }
+        post_input_event('{{handle_mouse_motion.post_route}}', data)
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener("mousemove", handleMouseMotion)
+    });
+</script>
