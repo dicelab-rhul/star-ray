@@ -42,7 +42,7 @@ class XMLChangeTracker:
 
             def _get_element_xpath(self):
                 # TODO note that the element xpath is defined as relative, but it is always relative to the root of the xml tree!
-                # document this somewhere
+                # TODO document this somewhere
                 id = self.get("id", None)
                 if id:
                     # there is a unique id, use this as the unique identifier for this change

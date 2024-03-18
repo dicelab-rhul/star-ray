@@ -1,7 +1,8 @@
 import unittest
+from pprint import pprint
 
-from lxml import etree
-from star_ray.plugin.star_ray_xml import (
+# pylint: disable=E0401, E0611
+from star_ray.plugin.xml import (
     QueryXPath,
     QueryXMLHistory,
     XMLAmbient,
@@ -27,7 +28,6 @@ XML = """
 class TestXMLChangeHistory(unittest.TestCase):
 
     def test_update_store(self):
-        # Applying the history decorator with both update and select (and their responses) enabled
 
         @xml_history(force_overwrite=True)
         class MyXMLAmbient(XMLAmbient):
@@ -37,105 +37,14 @@ class TestXMLChangeHistory(unittest.TestCase):
         query = QueryXPath.new(
             "test", xpath="//svg:circle", attributes={"cx": 10, "cy": 10}
         )
-        response = ambient.__update__(query)
-        print(response)
-
+        # update cx and cy
+        ambient.__update__(query)
+        # check that history
         query = QueryXMLHistory.new("test")
-
         response = ambient.__select__(query)
+        pprint(response)
 
-        print(response)
-
-    # def test_select_store(self):
-    #     # Applying the history decorator with both update and select (and their responses) enabled
-    #     @history(
-    #         update=True,
-    #         select=True,
-    #         update_response=False,
-    #         select_response=False,
-    #         use_disk=True,
-    #         buffer_size=10,
-    #         flush_prop=0.5,
-    #         force_overwrite=True,
-    #     )
-    #     class MockAmbient(Ambient):
-
-    #         def __update__(self, query):
-    #             return Event.new("UPDATE RESPONSE")
-
-    #         def __select__(self, query):
-    #             return Event.new("SELECT RESPONSE")
-
-    #     ambient = MockAmbient([])
-
-    #     response = ambient.__select__(QueryHistory.new("me!"))
-    #     # should be empty, because there were no queries so far
-    #     self.assertListEqual(response.values, [])
-
-    #     select_event = Event.new("SELECT!")
-    #     update_event = Event.new("UPDATE!")
-    #     ambient.__select__(select_event)
-    #     ambient.__update__(update_event)
-    #     response = ambient.__select__(QueryHistory.new("me!"))
-    #     self.assertListEqual(response.values, [select_event, update_event])
-
-    #     test_events = []
-    #     for i in range(5):
-    #         query_update = Event.new(f"{i}")
-    #         test_events.append(query_update)
-    #         ambient.__update__(query_update)
-
-    #     response = ambient.__select__(QueryHistory.new("me!"))
-    #     # new events were added, see if they are retrieved
-    #     self.assertListEqual(response.values, test_events)
-
-    # def test_with_response(self):
-    #     # Applying the history decorator with both update and select (and their responses) enabled
-    #     @history(
-    #         update=True,
-    #         select=True,
-    #         update_response=True,
-    #         select_response=True,
-    #         use_disk=True,
-    #         buffer_size=10,
-    #         flush_prop=0.5,
-    #         force_overwrite=True,
-    #     )
-    #     class MockAmbient(Ambient):
-
-    #         def __update__(self, query):
-    #             return Event.new("UPDATE RESPONSE")
-
-    #         def __select__(self, query):
-    #             return Event.new("SELECT RESPONSE")
-
-    #     ambient = MockAmbient([])
-
-    #     response = ambient.__select__(QueryHistory.new("me!"))
-    #     # should be empty, because there were no queries so far
-    #     self.assertListEqual(response.values, [])
-
-    #     select_event = Event.new("SELECT!")
-    #     update_event = Event.new("UPDATE!")
-    #     response_select = ambient.__select__(select_event)
-    #     response_update = ambient.__update__(update_event)
-    #     response = ambient.__select__(QueryHistory.new("me!"))
-    #     self.assertListEqual(
-    #         response.values,
-    #         [select_event, response_select, update_event, response_update],
-    #     )
-
-    #     test_events = []
-    #     for i in range(5):
-    #         query_update = Event.new(f"{i}")
-    #         test_events.append(query_update)
-    #         response = ambient.__update__(query_update)
-    #         test_events.append(response)
-
-    #     response = ambient.__select__(QueryHistory.new("me!"))
-    #     # new events were added, see if they are retrieved
-    #     self.assertListEqual(response.values, test_events)
-    #     print(response.values)
+        # TODO assert that that response is correct!
 
 
 if __name__ == "__main__":

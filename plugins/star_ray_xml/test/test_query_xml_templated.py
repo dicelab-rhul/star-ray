@@ -1,6 +1,6 @@
 import unittest
 from star_ray.event.responseevent import ErrorResponse
-from star_ray.plugin.star_ray_xml import XMLState, QueryXMLTemplated, QueryXML
+from star_ray.plugin.xml import XMLState, QueryXMLTemplated, QueryXML
 
 NAMESPACES = {"svg": "http://www.w3.org/2000/svg"}
 

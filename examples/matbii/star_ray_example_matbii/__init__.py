@@ -1,24 +1,19 @@
 """ Run this file to see the demo, see README.md for details. """
 
+# pylint: disable=E0401,E0611
+
+
 import os
 
 os.environ["RAY_DEDUP_LOGS"] = "0"
 
 import ray
-from typing import Any, List, Dict
 from pathlib import Path
-from textwrap import dedent
-from dataclasses import astuple, dataclass
-import random
-import time
+
 import json
-import math
-import re
+
 import logging
 from jinja2 import Template
-
-from ast import literal_eval
-
 
 from star_ray.typing import Event
 from star_ray.environment import Environment, Ambient
@@ -28,12 +23,12 @@ from star_ray.plugin.xml import (
     QueryXML,
     QueryXMLTemplated,
     XMLState,
+    xml_history,
 )
 
-
-from star_ray.environment.history import history
-
-from .avatar_web import MATBIIAvatar
+from .const import *
+from .agent import MATBIIAgent, MATBIIActuator
+from .avatar import MATBIIAvatar
 
 _LOGGER = logging.getLogger(__package__)
 
@@ -43,27 +38,8 @@ DEFAULT_SVG_TEMPLATE_DATA_PATH = Path(__file__).parent.joinpath("state.json")
 DEFAULT_SVG_TEMPLATE_PATH = Path(__file__).parent.joinpath("matbii.svg.jinja")
 
 
-ID_LIGHT1 = "light-1"
-ID_LIGHT2 = "light-2"
-
-
-@dataclass
-class QueryLight(QueryXMLTemplated):
-
-    @staticmethod
-    def new_toggle(source: str, light_index: int):
-        element_id = [ID_LIGHT1, ID_LIGHT2][light_index]
-        attributes = {
-            "data-state": "{{1-data_state}}",  # this will toggle "data-state" of the light
-            "fill": "{{data_colors[data_state]}}",  # this will set the light fill based on the data-colors attribute
-        }
-        return QueryLight(
-            *astuple(QueryXMLTemplated.new(source, element_id, attributes))
-        )
-
-
 @ray.remote
-@history()
+@xml_history()
 class MATBIIAmbient(XMLAmbient):
     def __init__(
         self, svg_template_path: str = None, svg_template_data_path: str = None
