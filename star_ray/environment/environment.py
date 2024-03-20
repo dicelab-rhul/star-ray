@@ -1,76 +1,45 @@
-from typing import List
+import asyncio
 
-import ray
-from ray.actor import ActorHandle
-
+from .wrapper_state import _State
 from .ambient import Ambient
+from ..utils import _Future
 
 
 class Environment:
-    def __init__(self, ambient: Ambient, sync: bool = True, *args, **kwargs):
+    def __init__(
+        self, ambient: Ambient, sync: bool = True, wait: float = 1.0, *args, **kwargs
+    ):
         super().__init__(*args, **kwargs)
-        self._ambient = ambient
+        self._wait = wait
+        self._ambient = _State.new(ambient)
+        self._step = self._step_sync if sync else self._step_async
 
-        # if isinstance(ambient, ActorHandle):
-        self._step = self._step_remote_seq if sync else self._step_remote_aseq
-        # else:
-        #     self._step = self._step_local_seq if sync else self._step_local_aseq
+    def run(self):
+        async def run_loop():
+            running = True
+            while running:
+                running = await self.step()
+                if self._wait:
+                    await asyncio.sleep(self._wait)
 
-    def get_agents(self) -> List[ActorHandle]:
-        if isinstance(self._ambient, ActorHandle):
-            return ray.get(self._ambient.get_agents.remote())
-        else:
-            return self._ambient.get_agents()
+        asyncio.run(run_loop())
 
-    def step(self):
-        # split agents into remote and local
-        agents = self._step()
-        return len(agents) > 0
+    async def step(self) -> bool:
+        # return False if the simulation should stop? TODO more info might be useful...
+        agents = self._ambient.get_agents()
+        if len(agents) == 0:
+            return False
+        await self._step(agents)
+        return True
 
-    def _step_local_seq(self):
-        agents = self.get_agents()
-        _ = [agent.__sense__(self._ambient) for agent in agents]
-        _ = [agent.__cycle__() for agent in agents]
-        _ = [agent.__execute__(self._ambient) for agent in agents]
-        return agents
+    async def _step_sync(self, agents) -> None:
+        await _Future.gather([agent.sense(self._ambient) for agent in agents])
+        await _Future.gather([agent.cycle() for agent in agents])
+        await _Future.gather([agent.execute(self._ambient) for agent in agents])
 
-    def _step_local_aseq(self):
-        agents = self.get_agents()
-        for agent in agents:
-            agent.__sense__(self._ambient)
-            agent.__cycle__()
-            agent.__execute__(self._ambient)
-        return agents
-
-    def _step_remote_aseq(self):
-        # calls sense, cycle, execute, without waiting for agents to finish each phase, "slower" agents may perceive things after other agents have executed their actions.
-        agents = self.get_agents()
-        refs = []
-        refs.extend([agent.__sense__.remote(self._ambient) for agent in agents])
-        refs.extend([agent.__cycle__.remote() for agent in agents])
-        refs.extend([agent.__execute__.remote(self._ambient) for agent in agents])
-        ray.wait(refs, num_returns=len(refs), timeout=1)
-        return agents
-
-    def _step_remote_seq(self):
-        # calls sense, cycle, execute sequentially, waiting for each agent to finish before proceeding to the next phase
-        agents = self.get_agents()
-
-        refs = [agent.__sense__.remote(self._ambient) for agent in agents]
-        # wait for sense to complete
-        ready, _ = ray.wait(refs, num_returns=len(refs), timeout=1)
-        _ = [ray.get(obj) for obj in ready]
-
-        refs = [agent.__cycle__.remote() for agent in agents]
-        # wait for cycle to complete
-        ready, _ = ray.wait(refs, num_returns=len(refs), timeout=1)
-        _ = [ray.get(obj) for obj in ready]
-
-        refs = [agent.__execute__.remote(self._ambient) for agent in agents]
-        # wait for execute to complete
-        ready, _ = ray.wait(refs, num_returns=len(refs), timeout=1)
-        _ = [ray.get(obj) for obj in ready]
-
-        # TODO handle exceptions properly here!
-
-        return agents
+    async def _step_async(self, agents) -> None:
+        futures = []
+        futures.extend([agent.sense(self._ambient) for agent in agents])
+        futures.extend([agent.cycle() for agent in agents])
+        futures.extend([agent.execute(self._ambient) for agent in agents])
+        await _Future.gather(futures)

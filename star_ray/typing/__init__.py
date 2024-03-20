@@ -11,3 +11,13 @@ from ..event import (
     ErrorResponse,
     VisibilityEvent,
 )
+
+from ..agent import (
+    Sensor,
+    Actuator,
+    Component,
+    ActiveActuator,
+    ActiveSensor,
+    ActiveComponent,
+)
+from ..environment import Ambient, Environment

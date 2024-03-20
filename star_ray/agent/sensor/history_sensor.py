@@ -1,11 +1,11 @@
 from types import EllipsisType
 from typing import List, Type, Optional
-from ..component import Sensor
+from ..component import ActiveSensor
 from ...environment.history import QueryHistory
 
 
-class HistorySensor(Sensor):
-    """A simple passive sensor that gets the most recent event history. This requires the `@history` decorator to be applied to the `Ambient` in use.
+class HistorySensor(ActiveSensor):
+    """A simple sensor that gets the most recent event history. This requires the `@history` decorator to be applied to the `Ambient` in use.
     Example:
     ```
     from star_ray.environment.history import history

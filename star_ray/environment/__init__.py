@@ -1,5 +1,5 @@
 from .environment import Environment
 from .ambient import Ambient
-from .history.history import history, QueryHistory
+from .wrapper_state import _State
 
-__all__ = ("Environment", "Ambient", "QueryHistory", "history")
+__all__ = ("Environment", "Ambient", "_State")
