@@ -1,4 +1,5 @@
 import asyncio
+import signal
 
 from .wrapper_state import _State
 from .ambient import Ambient
@@ -15,14 +16,32 @@ class Environment:
         self._step = self._step_sync if sync else self._step_async
 
     def run(self):
-        async def run_loop():
-            running = True
-            while running:
-                running = await self.step()
-                if self._wait:
-                    await asyncio.sleep(self._wait)
 
-        asyncio.run(run_loop())
+        async def _run():
+            event_loop = asyncio.get_event_loop()
+            for sig in (signal.SIGINT, signal.SIGTERM):
+                event_loop.add_signal_handler(
+                    sig,
+                    lambda sig=sig: asyncio.create_task(
+                        _signal_shutdown(sig, event_loop), name=f"shutdown-signal-{sig}"
+                    ),
+                )
+            await self.initialise(event_loop)
+            await asyncio.gather(*self.get_schedule())
+
+        asyncio.run(_run())
+
+    async def initialise(self, event_loop):
+        await self._ambient.initialise()
+
+    def get_schedule(self):
+        return [asyncio.create_task(self.loop())]
+
+    async def loop(self):
+        running = True
+        while running:
+            running = await self.step()
+            await asyncio.sleep(self._wait)
 
     async def step(self) -> bool:
         # return False if the simulation should stop? TODO more info might be useful...
@@ -43,3 +62,12 @@ class Environment:
         futures.extend([agent.cycle() for agent in agents])
         futures.extend([agent.execute(self._ambient) for agent in agents])
         await _Future.gather(futures)
+
+
+async def _signal_shutdown(sig, loop):
+    print("Received signal {}, shutting down...".format(sig))
+    tasks = [task for task in asyncio.all_tasks() if task is not asyncio.current_task()]
+    for task in tasks:
+        task.cancel()
+    await asyncio.gather(*tasks, return_exceptions=True)
+    loop.stop()

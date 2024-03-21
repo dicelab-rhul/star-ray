@@ -1,17 +1,11 @@
 from __future__ import annotations
-from typing import Union, List, TYPE_CHECKING
+from typing import Union, List, TYPE_CHECKING, Any
 from abc import ABC, abstractmethod
-
+import asyncio
 import ray
 from ray.actor import ActorHandle
 from ..event import Event
 from .ambient import Ambient
-
-from ..agent.wrapper_observations import (
-    _ObservationsLocal,
-    _ObservationsRemote,
-    _Observations,
-)
 
 if TYPE_CHECKING:
     from ..agent.wrapper_agent import _Agent
@@ -31,11 +25,15 @@ class _State(ABC):
             raise TypeError(f"Invalid ambient type {type(ambient)}.")
 
     @abstractmethod
-    def update(self, actions: List[Event]) -> _Observations:
+    async def initialise(self):
         pass
 
     @abstractmethod
-    def select(self, actions: List[Event]) -> _Observations:
+    def update(self, actions: List[Event]) -> List[Any]:
+        pass
+
+    @abstractmethod
+    def select(self, actions: List[Event]) -> List[Any]:
         pass
 
     @abstractmethod
@@ -47,15 +45,15 @@ class _StateWrapperRemote(_State):
     def __init__(self, ambient: ActorHandle):
         self._inner = ambient
 
-    def update(self, actions: List[Event]) -> _Observations:
-        return _ObservationsRemote(
-            [self._inner.__update__.remote(query) for query in actions]
-        )
+    async def initialise(self):
+        # initialise the remote ambient, wait for the call to complete so that we can be sure everything is ready.
+        return await self._inner.initialise.remote()
 
-    def select(self, actions: List[Event]) -> _Observations:
-        return _ObservationsRemote(
-            [self._inner.__select__.remote(query) for query in actions]
-        )
+    def update(self, actions: List[Event]) -> List[Any]:
+        return [self._inner.__update__.remote(query) for query in actions]
+
+    def select(self, actions: List[Event]) -> List[Any]:
+        return [self._inner.__select__.remote(query) for query in actions]
 
     def get_agents(self) -> List[_Agent]:
         return ray.get(self._inner.get_agents.remote())
@@ -66,11 +64,14 @@ class _StateWrapper(_State):
     def __init__(self, ambient: Ambient):
         self._inner = ambient
 
-    def update(self, actions: List[Event]) -> _Observations:
-        return _ObservationsLocal([self._inner.__update__(query) for query in actions])
+    async def initialise(self):
+        return await self._inner.initialise()
 
-    def select(self, actions: List[Event]) -> _Observations:
-        return _ObservationsLocal([self._inner.__select__(query) for query in actions])
+    def update(self, actions: List[Event]) -> List[Any]:
+        return [self._inner.__update__(query) for query in actions]
+
+    def select(self, actions: List[Event]) -> List[Any]:
+        return [self._inner.__select__(query) for query in actions]
 
     def get_agents(self) -> List[_Agent]:
         return self._inner.get_agents()

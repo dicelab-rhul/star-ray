@@ -2,17 +2,17 @@ from typing import Union, List, Any
 from abc import ABC, abstractmethod
 import ray
 from ray import ObjectRef
+import asyncio
 
 from ..event import Event
+
+from collections import deque
 
 
 class _Observations(ABC):
 
-    def __init__(self, objects: List[Any]):
-        self._objects = objects
-
     @staticmethod
-    def new(objects: Union[List[ObjectRef], List[Event]]):
+    def new(objects):
         if len(objects) == 0:
             return _Observations.empty()
         elif isinstance(objects[0], ObjectRef):
@@ -27,25 +27,79 @@ class _Observations(ABC):
         return _ObservationsLocal([])
 
     @abstractmethod
+    def push_all(self, items: List[Any]) -> None:
+        pass
+
+    @abstractmethod
+    def push(self, item: Any) -> None:
+        pass
+
+    @abstractmethod
+    def pop(self) -> Event:
+        pass
+
+    @abstractmethod
     def __iter__(self):
         pass
+
+    # @abstractmethod
+    # async def __aiter__(self):
+    #     pass
 
 
 class _ObservationsRemote(_Observations):
 
-    def __init__(self, objects: List[ObjectRef]):
-        assert all([isinstance(obj, ObjectRef) for obj in objects])
-        super().__init__(objects)
+    def __init__(self, objects):
+        super().__init__()
+        self._objects = deque(objects)
+
+    def push(self, item: ObjectRef) -> None:
+        self._objects.appendleft(item)
+
+    def push_all(self, items: List[Any]) -> None:
+        self._objects.extendleft(items)
+
+    def pop(self) -> Event:
+        return ray.get(self._objects.popleft())
 
     def __iter__(self):
-        return iter(ray.get(obj_ref) for obj_ref in self._objects)
+        return self
+
+    def __next__(self):
+        if not self._objects:
+            raise StopIteration
+        return ray.get(self._objects.popleft())
+
+    # async def __aiter__(self):
+    #     return self
+
+    # async def __anext__(self):
+    #     if not self._objects:
+    #         raise StopAsyncIteration
+    #     object_ref: ObjectRef = self._objects.popleft()
+    #     event = await object_ref
+    #     return event
 
 
 class _ObservationsLocal(_Observations):
 
-    def __init__(self, objects: List[Any]):
-        # assert all([isinstance(obj, Event) for obj in objects])
-        super().__init__(objects)
+    def __init__(self, objects):
+        super().__init__()
+        self._objects = deque(objects)
+
+    def push_all(self, items: List[Any]) -> None:
+        self._objects.extendleft(items)
+
+    def push(self, item: ObjectRef) -> None:
+        self._objects.appendleft(item)
+
+    def pop(self) -> Event:
+        return self._objects.popleft()
 
     def __iter__(self):
-        return iter(self._objects)
+        return self
+
+    def __next__(self):
+        if not self._objects:
+            raise StopIteration
+        return self._objects.popleft()

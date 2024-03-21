@@ -4,5 +4,5 @@
 
 
 from .environment import Environment, Ambient
-from .agent import Agent, ActiveActuator, ActiveSensor
+from .agent import Agent, Sensor, Actuator, Component, ActiveActuator, ActiveSensor
 from .event import Event

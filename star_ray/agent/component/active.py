@@ -23,6 +23,10 @@ class ActiveComponent(Component):
         # observations that result from self._actions
         self._observations: _Observations = _Observations.empty()
 
+    def get_observations(self) -> List[Event]:
+        # we should be consuming these here....
+        return list(self._observations)
+
     @abstractmethod
     def __query__(self, state: _State):
         """Calling this method will cause this [`ActiveComponent`] to query the state of the environment.

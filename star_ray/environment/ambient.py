@@ -1,5 +1,5 @@
 from typing import Any, List
-
+import asyncio
 from abc import ABC, abstractmethod
 from ..utils import new_uuid
 
@@ -56,3 +56,6 @@ class Ambient(ABC):
     @abstractmethod
     def __update__(self, action):
         pass
+
+    async def initialise(self):
+        pass  # there is no setup to do by default...
