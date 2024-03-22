@@ -1,0 +1,9 @@
+Metadata-Version: 2.1
+Name: star-ray-web
+Version: 0.0.1
+Author: Benedict Wilkins
+Author-email: benrjw@gmail.com
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: ray[serve]==2.9.1
+Requires-Dist: starlette<=0.34.0

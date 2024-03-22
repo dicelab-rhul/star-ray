@@ -1,0 +1,105 @@
+<!-- Render the SVG here -->
+<div id="svg-container">
+    {{ svg_code | safe }}
+</div>
+
+<!-- script to receive SVG data from server -->
+<script>
+
+    const svg_parser = new DOMParser();
+    const namespace_resolver = (prefix) => {
+        const ns = {
+            'svg': 'http://www.w3.org/2000/svg',
+            'xlink': 'http://www.w3.org/1999/xlink',
+        };
+        return ns[prefix] || null;
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        route = "{{route}}" // set by jinja
+        const socket = new WebSocket(`ws://{{address}}/${route}`);
+
+        socket.addEventListener('close', function (event) {
+            console.log(`websocket connection to route '${route}' closed with code ${event.code}.`)
+            if (event.code == 1000) {
+                // normal closure
+            } else if (event.code == 1013) {
+                setTimeout(connectWebSocket, 2000); // try connecting again
+            }
+        })
+
+        socket.addEventListener('open', function (event) {
+            console.log(`websocket connected to route '${route}'.`);
+        });
+
+        socket.addEventListener('message', function (event) {
+            let data;
+            try {
+                data = JSON.parse(event.data);
+            } catch (error) {
+                // Constructing the error message
+                const message = {
+                    statusCode: 400, // Using 400 for Bad Request, but you can choose appropriate codes
+                    errorMessage: "JSON parse error: " + error.message
+                };
+                console.error(message.errorMessage);
+                socket.send(JSON.stringify(errorMessage));
+                return
+            }
+            // TODO catch any exceptions here and send them to server
+            updateSvg(data.xpath, data.attributes)
+
+        });
+    });
+
+    // Function to update SVG based on XPath and attributes
+    function updateSvg(xpath, attributes) {
+        // Namespace resolver - adjust as needed for other namespaces
+        // TODO name spaces need to be set by the server!
+        const svg_container = document.getElementById('svg-container');
+        const svg_elements = svg_container.querySelectorAll("svg")
+        if (svg_elements.length != 1) {
+            console.error("svg_container contains multiple svg elements...")
+        }
+        const svg_root = svg_elements[0]
+        // Evaluate XPath and get all matching elements as a snapshot
+        const result = document.evaluate(xpath, svg_root, namespace_resolver, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+
+        if (result.snapshotLength == 0) {
+            console.error(`no elements were found from xpath query: ${xpath}`)
+        }
+
+        // Iterate over each node in the snapshot
+        for (let i = 0; i < result.snapshotLength; i++) {
+            const element = result.snapshotItem(i);
+            updateElement(element, attributes, namespace_resolver)
+        }
+    }
+
+    function updateElement(element, attributes, namespace_resolver) {
+        // If attributes is a string, replace the selected element or its content
+        if (typeof attributes === 'string') {
+            if (element.nodeType === Node.ELEMENT_NODE) {
+                const namespaceDeclarations = Object.entries(namespace_resolver)
+                    .map(([prefix, uri]) => `xmlns:${prefix}="${uri}"`)
+                    .join(' ');
+                var svgString = `<svg ${namespaceDeclarations}>${attributes}</svg>`;
+                // Parse the attributes string as XML using the global DOMParser
+                var doc = svg_parser.parseFromString(svgString, 'application/xml');
+                var newNode = document.importNode(doc.documentElement.firstChild, true);
+                element.parentNode.replaceChild(newNode, element);
+            } else if (element.nodeType === Node.TEXT_NODE) {
+                // Replace the text node value
+                element.nodeValue = attributes;
+            }
+        } else if (typeof attributes === 'object') {
+            // Iterate over each attribute and update
+            for (const [attr, value] of Object.entries(attributes)) {
+                element.setAttribute(attr, value);
+            }
+        } else {
+            throw new Error("Attributes must be either a string or an object.");
+        }
+
+    }
+</script>
