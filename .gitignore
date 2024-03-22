@@ -1,6 +1,6 @@
 
 *.h5
-
+*.zip
 logs/
 
 # Byte-compiled / optimized / DLL files
