@@ -9,7 +9,7 @@ from lxml import etree
 from star_ray.event import Event, SelectResponse
 from star_ray.environment.history._h5history import _HistoryH5Sync
 from star_ray.environment.history._history import _History
-from star_ray.agent import Sensor
+from star_ray.agent import ActiveSensor
 
 from .xml_change import XMLChangeTracker
 
@@ -17,7 +17,7 @@ from .xml_change import XMLChangeTracker
 __all__ = ("XMLHistory", "XMLHistorySensor", "QueryXMLHistory", "xml_history")
 
 
-class XMLHistorySensor(Sensor):
+class XMLHistorySensor(ActiveSensor):
 
     def __sense__(self) -> List["QueryXMLHistory"]:
         return [QueryXMLHistory.new(self.id, index=...)]

@@ -1,11 +1,12 @@
 import { WebSocketModule } from '/static/star_ray/websocket.js';
 
 function handleMouseButton(event, status) {
-    var element = event.target;
+    var elements = document.elementsFromPoint(event.clientX, event.clientY);
+    var targets = elements.filter(el => el.id).map(el => el.id);
     var data = {
-        id: element.id,
+        event_type: "MouseButtonEvent",
+        targets: targets,
         timestamp: event.timeStamp,
-        type: element.tagName,
         status: status,
         position: { x: event.clientX, y: event.clientY },
         button: event.button,

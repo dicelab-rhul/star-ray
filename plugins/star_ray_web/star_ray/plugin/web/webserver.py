@@ -1,5 +1,10 @@
 # pylint: disable=E1101
 from collections import defaultdict
+from typing import get_type_hints
+import inspect
+
+from abc import ABC
+
 
 from fastapi.responses import HTMLResponse, Response
 from fastapi.templating import Jinja2Templates
@@ -56,9 +61,14 @@ _STAR_RAY_TEMPLATES_DATA_DEFAULT = {
 
 
 class WebServer:
-    # NOTE the webserver must be part of the Ambient ray actor, this drastically simplifies management of avatars and does not come with a significant performance cost since most avatar operations are aysnchronous (IO bound) and act on the ambient anyway.
 
-    def __init__(self, ambient: Ambient, avatar_factory: AgentFactory, *args, **kwargs):
+    def __init__(
+        self,
+        ambient: Ambient,
+        avatar_factory: AgentFactory,
+        *args,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         self._app = FastAPI()
         self.register_routes()
@@ -121,7 +131,7 @@ class WebServer:
         return Response(content=content, media_type=media_type)
 
     def register_routes(self):
-        self._app.get("/", response_class=HTMLResponse)(self.serve_root)
+        # self._app.get("/", response_class=HTMLResponse)(self.serve_root)
         self._app.websocket("/{token}")(self.websocket_endpoint)
         self._app.get(
             "/static/template/{namespace}/{filename}",
@@ -147,18 +157,16 @@ class WebServer:
         await websocket.accept()
         self._open_connections[user_id] = True
         # create avatar using the the factory provided
-        user_agent = self._avatar_factory.new(user_id)
+        user_agent = self._avatar_factory(user_id)
         assert isinstance(user_agent, WebAvatar)  # some methods are required...
         # add the avatar to the environment (ambient)
         self._ambient.add_agent(user_agent)
 
+        send, receive = WebServer._new_socket_handler(user_agent)
         # Task for receiving data
-        receive_task = asyncio.create_task(
-            WebServer.receive_data(websocket, user_agent)
-        )
-
+        receive_task = asyncio.create_task(receive(websocket, user_agent))
         # Task for sending data
-        send_task = asyncio.create_task(WebServer.send_data(websocket, user_agent))
+        send_task = asyncio.create_task(send(websocket, user_agent))
 
         # Wait for either task to finish (e.g., due to WebSocketDisconnect)
         _, pending = await asyncio.wait(
@@ -174,24 +182,66 @@ class WebServer:
         print(f"WebSocket disconnected for user {user_id}")
 
     @staticmethod
-    async def receive_data(websocket: WebSocket, user_agent: WebAvatar):
-        try:
-            while True:
-                data = await websocket.receive_text()
-                # print("receiving: ", data)
-                await user_agent.__receive__(data)
-        except WebSocketDisconnect:
-            pass
+    def _new_socket_handler(avatar: WebAvatar):
+        dtype = avatar._protocol_dtype
+        # def _get_type_hint(method, arg=1):
+        #     type_hints = get_type_hints(method)
+        #     signature = inspect.signature(method)
+        #     name = list(signature.parameters.keys())[arg]
+        #     return type_hints.get(name)
 
-    @staticmethod
-    async def send_data(websocket: WebSocket, user_agent: WebAvatar):
-        try:
-            while True:
-                data = await user_agent.__send__()
-                # print("sending: ", data)
-                await websocket.send_text(data)
-        except WebSocketDisconnect:
-            pass
+        # dtype_receive = _get_type_hint(avatar.__receive__, arg=1)
+        # dtype_send = _get_type_hint(avatar.__send__, arg=1)
+
+        async def receive_text(websocket):
+            return await websocket.receive_text()
+
+        async def receive_bytes(websocket):
+            return await websocket.receive_bytes()
+
+        async def receive_json(websocket):
+            return await websocket.receive_json()
+
+        async def send_text(websocket, data):
+            await websocket.send_text(data)
+
+        async def send_bytes(websocket, data):
+            await websocket.send_bytes(data)
+
+        async def send_json(websocket, data):
+            await websocket.send_json(data)
+
+        dtype_receive_map = {
+            "byte": receive_bytes,
+            "text": receive_text,
+            "json": receive_json,
+        }
+
+        dtype_send_map = {"byte": send_bytes, "text": send_text, "json": send_json}
+
+        assert dtype in dtype_receive_map
+        assert dtype in dtype_send_map
+
+        _websocket_send = dtype_send_map[dtype]
+        _websocket_receive = dtype_receive_map[dtype]
+
+        async def _receive(websocket: WebSocket, user_agent: WebAvatar):
+            try:
+                while True:
+                    data = await _websocket_receive(websocket)
+                    await user_agent.__receive__(data)
+            except WebSocketDisconnect:
+                pass
+
+        async def _send(websocket: WebSocket, user_agent: WebAvatar):
+            try:
+                while True:
+                    data = await user_agent.__send__()
+                    await _websocket_send(websocket, data)
+            except WebSocketDisconnect:
+                pass
+
+        return _send, _receive
 
 
 #  def __init__(self):

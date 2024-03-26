@@ -24,19 +24,20 @@ class WebAvatar(_WebAvatar):
     TODO I will implement a more responsive version that runs independently of the environment cycle soon!
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, protocol_dtype="json", **kwargs):
         super().__init__(*args, **kwargs)
         self._observation_buffer = asyncio.Queue()
         self._action_buffer = asyncio.Queue()
+        self._protocol_dtype = protocol_dtype
 
     @abstractmethod
-    def attempt(self, action: bytes):
+    def attempt(self, action: Any):
         pass
 
     @abstractmethod
     def perceive(
         self, component: Union[ActiveSensor, ActiveActuator], observation: Event
-    ) -> bytes:
+    ) -> Any:
         pass
 
     async def __execute__(self, state, *args, **kwargs):
@@ -59,7 +60,11 @@ class WebAvatar(_WebAvatar):
             for observation in component.get_observations():
                 data = self.perceive(component, observation)
                 if data:
-                    await self._observation_buffer.put(data)
+                    # TODO this might become problematic for sending json data... maybe we should just require that a list/tuple is returned
+                    if not isinstance(data, (list, tuple)):
+                        data = (data,)
+                    for obs in data:
+                        await self._observation_buffer.put(obs)
 
     def _get_all_recent(self, queue: asyncio.Queue) -> List[Any]:
         items = []

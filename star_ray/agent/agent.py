@@ -7,7 +7,7 @@ from .component import Sensor, Actuator
 class AgentFactory(ABC):
 
     @abstractmethod
-    def new(self, *args, **kwargs) -> ABC:
+    def __call__(self, *args, **kwargs) -> ABC:
         pass
 
 

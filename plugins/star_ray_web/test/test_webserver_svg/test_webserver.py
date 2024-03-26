@@ -1,6 +1,14 @@
 # pylint: disable=E0401, E0611,
 from dataclasses import dataclass, astuple
+import pathlib
 from typing import List, Tuple
+
+from fastapi import Request
+from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
 from star_ray import Ambient, Environment, ActiveActuator, ActiveSensor
 from star_ray.event import SelectResponse, UpdateResponse
 from star_ray.agent import Agent, AgentFactory
@@ -109,7 +117,7 @@ class MyWebAvatar(WebAvatar):
 
 class MyWebAvatarFactory(AgentFactory):
 
-    def new(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs):
         return MyWebAvatar([MySensor()], [MyActuator(50)])
 
 
@@ -151,11 +159,21 @@ class MyAmbient(Ambient):
         )
 
 
+class MyWebServer(WebServer):
+
+    def __init__(self, ambient):
+        super().__init__(ambient, MyWebAvatarFactory())
+        self._namespace = "myserver"
+        static_path = pathlib.Path(__file__).parent.expanduser().resolve()
+        static_files = StaticFiles(directory=static_path)
+        self._app.mount("/", static_files)
+
+
 class MyEnvironment(Environment):
 
     def __init__(self, ambient, *args, **kwargs):
         super().__init__(ambient, *args, **kwargs)
-        self._webserver = WebServer(ambient, MyWebAvatarFactory())
+        self._webserver = MyWebServer(ambient)
         self._cycle = 0
 
     def get_schedule(self):

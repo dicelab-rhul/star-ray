@@ -33,10 +33,21 @@ class XMLState:
 
     def __select__(self, query: QueryXPath) -> SelectResponse | ErrorResponse:
         # TODO this is a read only query and can be executed in parallel
-        return query.__select__("environment", self._root, namespaces=self._namespaces)
+        try:
+            return query.__select__(
+                "environment", self._root, namespaces=self._namespaces
+            )
+        except Exception as e:
+            return ErrorResponse.new("environment", query, e)
 
     def __update__(self, query: QueryXPath) -> UpdateResponse | ErrorResponse:
         # TODO this is a write query
-        return query.__update__(
-            "environment", self._root, namespaces=self._namespaces, parser=self._parser
-        )
+        try:
+            return query.__update__(
+                "environment",
+                self._root,
+                namespaces=self._namespaces,
+                parser=self._parser,
+            )
+        except Exception as e:
+            return ErrorResponse.new("environment", query, e)

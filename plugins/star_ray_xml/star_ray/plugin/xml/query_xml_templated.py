@@ -23,7 +23,7 @@ class QueryXMLTemplated(QueryXML):
         assert isinstance(attributes, (list, dict, str))
         if isinstance(attributes, list) and len(attributes) == 0:
             raise ValueError(
-                f"At least one select template must be provided in argument `attributes`. To select an element directly, use `{type(QueryXML)}` instead."
+                f"At least one select template must be provided in argument `attributes`. To select an element directly, use `{QueryXML.__name__}` instead."
             )
         return QueryXMLTemplated(*astuple(QueryXML.new(source, element_id, attributes)))
 

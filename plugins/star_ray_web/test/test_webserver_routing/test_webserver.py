@@ -37,8 +37,7 @@ class MyWebAvatar(WebAvatar):
 
 class MyWebAvatarFactory(AgentFactory):
 
-    def new(self, *args, **kwargs):
-        print("new avatar :)")
+    def __call__(self, *args, **kwargs):
         return MyWebAvatar([], [])
 
 

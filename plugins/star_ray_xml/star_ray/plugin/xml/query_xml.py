@@ -14,16 +14,14 @@ class QueryXML(QueryXPath):
         source: str, element_id: str, attributes: str | List[str] | Dict[str, Any]
     ) -> "QueryXML":
         assert isinstance(attributes, (list, dict, str))
-        xpath = f".//*[@id='{element_id}']"
+        xpath = f"//*[@id='{element_id}']"
         return QueryXML(*astuple(QueryXPath.new(source, xpath, attributes)))
 
     def __select__(self, *args, **kwargs) -> SelectResponse | ErrorResponse:
-        # TODO catch exceptions here
         response = super().__select__(*args, **kwargs)
         return _validate_select_response(response, self)
 
     def __update__(self, *args, **kwargs) -> UpdateResponse | ErrorResponse:
-        # TODO catch exceptions here
         return super().__update__(*args, **kwargs)
 
     @property

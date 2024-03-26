@@ -1,5 +1,6 @@
 import unittest
-from star_ray.plugin.star_ray_xml import XMLState, QueryXML
+from star_ray.event import ErrorResponse
+from star_ray.plugin.xml import XMLState, QueryXML
 
 NAMESPACES = {"svg": "http://www.w3.org/2000/svg"}
 
@@ -11,15 +12,14 @@ class TestXMLState(unittest.TestCase):
         query = QueryXML.new("test", "[[id]]", ["width", "height"])
         result = app.__select__(query)
         self.assertTrue(result.success)
-        self.assertTupleEqual(
+        self.assertListEqual(
             result.values,
-            (
-                "[[id]]",
+            [
                 {
                     "width": "[[100 + rect.size.0]]",
                     "height": "[[rect.size.1]]",
-                },
-            ),
+                }
+            ],
         )
 
     def test_select_root(self):
@@ -28,12 +28,9 @@ class TestXMLState(unittest.TestCase):
         query = QueryXML.new("test", "root", [])
         result = app.__select__(query)
         self.assertTrue(result.success)
-        self.assertTupleEqual(
-            result.values,
-            (
-                "root",
-                '<svg xmlns="http://www.w3.org/2000/svg" id="root"> hello [[myworldtext]] <!-- Background rectangle --> <rect id="[[id]]" width="[[100 + rect.size.0]]" height="[[rect.size.1]]" fill="#f5f5f5"/> </svg>',
-            ),
+        self.assertEqual(
+            result.values[0],
+            '<svg xmlns="http://www.w3.org/2000/svg" id="root"> hello [[myworldtext]] <!-- Background rectangle --> <rect id="[[id]]" width="[[100 + rect.size.0]]" height="[[rect.size.1]]" fill="#f5f5f5"/> </svg>',
         )
 
     def test_select_error_id_missing(self):
@@ -42,7 +39,7 @@ class TestXMLState(unittest.TestCase):
         query = QueryXML.new("test", "invalid_id", ["width", "height"])
         response = app.__select__(query)
         self.assertFalse(response.success)
-        self.assertTrue(isinstance(response.error, Exception))  # pylint: disable=E1101
+        self.assertTrue(isinstance(response, ErrorResponse))  # pylint: disable=E1101
 
     def test_select_error_id_not_unique(self):
         svg_code = """<svg id="root" xmlns="http://www.w3.org/2000/svg"> hello [[myworldtext]] <!-- Background rectangle --> <rect id="[[id]]"/> <rect id="[[id]]"/> </svg>"""
@@ -50,7 +47,7 @@ class TestXMLState(unittest.TestCase):
         query = QueryXML.new("test", "[[id]]", [])
         response = app.__select__(query)
         self.assertFalse(response.success)
-        self.assertTrue(isinstance(response.error, Exception))  # pylint: disable=E1101
+        self.assertTrue(isinstance(response, ErrorResponse))  # pylint: disable=E1101
 
     def test_update(self):
         svg_code = """<svg id="root" xmlns="http://www.w3.org/2000/svg"> hello [[myworldtext]] <!-- Background rectangle --> <rect id="[[id]]" width="[[100 + rect.size.0]]" height="[[rect.size.1]]" fill="#f5f5f5"/> </svg>"""
@@ -61,15 +58,14 @@ class TestXMLState(unittest.TestCase):
         query = QueryXML.new("test", "[[id]]", ["width", "height"])
         result = app.__select__(query)
         self.assertTrue(result.success)
-        self.assertTupleEqual(
+        self.assertListEqual(
             result.values,
-            (
-                "[[id]]",
+            [
                 {
                     "width": 100,
                     "height": 200,
-                },
-            ),
+                }
+            ],
         )
 
 

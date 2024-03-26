@@ -12,7 +12,8 @@ class TestXMLStateXPath(unittest.TestCase):
         svg_code = """<svg id="root" xmlns="http://www.w3.org/2000/svg"> <rect id="rect-1" width="100"/> <rect id="rect-2" width="200"/> </svg>"""
         app = XMLState(svg_code, namespaces=NAMESPACES)
         query = QueryXPath.new("test", "//svg:rect", "bad value...")
-        result = app.__select__(query)
+        with self.assertRaises(TypeError):
+            result = app.__select__(query)
 
     def test_select_elements(self):
         svg_code = """<svg id="root" xmlns="http://www.w3.org/2000/svg"> <rect id="rect-1" width="100"/> <rect id="rect-2" width="200"/> </svg>"""

@@ -20,7 +20,7 @@ const WebSocketModule = (function () {
 
     function send(data) {
         if (webSocketConnection && webSocketConnection.readyState === WebSocket.OPEN) {
-            const message = JSON.stringify({ data });
+            const message = JSON.stringify(data);
             webSocketConnection.send(message);
         } else {
             console.error('WebSocket is not open. Message not sent.');

@@ -62,7 +62,10 @@ class ActiveComponent(Component):
         @wraps(fun)
         def wrapper(self, *args, **kwargs):
             action = fun(self, *args, **kwargs)
-            self._actions.append(action)  # pylint: disable=W0212
+            if isinstance(action, (list, tuple)):
+                self._actions.extend(action)  # pylint: disable=W0212
+            else:
+                self._actions.append(action)  # pylint: disable=W0212
             return action
 
         return wrapper
