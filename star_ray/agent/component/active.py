@@ -68,6 +68,7 @@ class ActiveComponent(Component):
                 self._actions.append(action)  # pylint: disable=W0212
             return action
 
+        wrapper.is_attempt = True
         return wrapper
 
 

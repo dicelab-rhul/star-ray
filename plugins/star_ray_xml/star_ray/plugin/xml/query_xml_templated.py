@@ -12,6 +12,15 @@ from ._utils import _tostring, _xml_to_primitive
 
 from star_ray.event import ErrorResponse, SelectResponse, UpdateResponse
 
+from jinja2 import Environment
+
+# Create a Jinja environment instance, this will be used globally to resolve templated queries
+_ENV = Environment()
+
+# Add 'min' function to the global namespace of the environment
+_ENV.globals["min"] = min
+_ENV.globals["max"] = max
+
 
 @dataclass
 class QueryXMLTemplated(QueryXML):
@@ -92,7 +101,7 @@ def _resolve_attribute_templates_update(query_attributes, element_attributes):
     }
     if isinstance(query_attributes, str):
         # TODO proper error handling here!
-        return Template(query_attributes).render(element_attributes)
+        return _ENV.from_string(query_attributes).render(element_attributes)
     else:
         return dict(
             zip(
@@ -121,10 +130,10 @@ def _resolve_attribute_templates_select(
 def _resolve_iterable(attributes, element_attributes):
     try:
         for template in attributes:
-            yield Template(template).render(element_attributes)
+            yield _ENV.from_string(template).render(element_attributes)
     except UndefinedError as e:
         msg = e.args[0] if e.args else None
-        element_id = element_attributes["id"]
+        element_id = element_attributes.get("id", "<UNDEFINED ELEMENT ID>")
         raise ValueError(
             f"Failed to parse template '{template}'. {msg} on element '{element_id}', valid attributes include: {list(element_attributes.keys())}"
         ) from e
