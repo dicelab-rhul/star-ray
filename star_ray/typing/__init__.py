@@ -1,4 +1,6 @@
-""" Type aliases for various types in star-ray. """
+""" Types in star-ray. """
+
+# TODO not sure that we need this...
 
 from ..event import (
     Event,

@@ -8,7 +8,9 @@ setup(
     description="",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    packages=find_namespace_packages(include=["star_ray.plugin.web"]),
+    packages=find_namespace_packages(
+        include=["star_ray.plugin.web", "star_ray.plugin.web.*"]
+    ),
     install_requires=[
         "ray[serve]==2.9.1",
         "starlette<=0.34.0",  # this version is required to prevent an error in ray serve (it should be fixed in ray 2.10)

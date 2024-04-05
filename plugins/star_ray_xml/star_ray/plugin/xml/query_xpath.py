@@ -56,10 +56,19 @@ def _select(
     namespaces: Dict[str, str] = None,
 ):
     elements = root.xpath(xpath, namespaces=namespaces)
-    return [_select_element(attributes, element) for element in elements]
+    print("----", xpath, elements)
+
+    # TODO some xpath queries do not return a list of elements, they may return a value (e.g. a float from `count()`)
+    if isinstance(elements, (int, float, bool, str)):
+        return elements
+    elif isinstance(elements, (ET._Element, ET._ElementUnicodeResult)):
+        return _select_element(attributes, elements)
+    else:
+        return [_select_element(attributes, element) for element in elements]
 
 
 def _select_element(attributes: List[str], element: Any):
+
     if isinstance(element, ET._Element):
         if len(attributes) > 0:
             # TODO rather than none, return a Missing object?

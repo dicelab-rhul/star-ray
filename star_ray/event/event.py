@@ -1,36 +1,28 @@
 """ Module defining the [Event] class."""
 
-import uuid
-from dataclasses import dataclass
 import time
+from pydantic import BaseModel, Field, model_serializer
+from ..utils import int64_uuid
+
+EVENT_TIMESTAMP_FUNC = time.time
+EVENT_UUID_FUNC = int64_uuid
 
 
-@dataclass
-class Event:
+class Event(BaseModel):
     """A simple event class with a unique identifier and a timestamp.
 
     Attributes:
-        id ([str]): A unique identifier for the event, represented as a string.
-        timestamp ([float]): The UNIX timestamp (in seconds) when the event instance is created.
-        source ([str]): A unique identifier for the source of this event, represented as a string.
+        id ([int]): A unique identifier for the event.
+        timestamp ([float]): The timestamp (in seconds since UNIX epoch) when the event instance is created.
+        source ([int]): A unique identifier for the source of this event.
     """
 
-    id: str
-    timestamp: float
-    source: str
+    id: int = Field(default_factory=EVENT_UUID_FUNC)
+    timestamp: float = Field(default_factory=EVENT_TIMESTAMP_FUNC)
+    source: int
 
-    @staticmethod
-    def new(source: str) -> "Event":
-        """Creates a new instance of [Event] with a unique UUID as its id and a current UNIX timestamp.
-
-        This method generates a UUID4, converts it to a string, and gets the current UNIX time (in seconds) to be used as the event's ID and timestamp respectively.
-        Args:
-            source ([str]): A unique identifier for the source of this event, represented as a string.
-        Returns:
-            Event: A new instance of the Event class with a unique ID and a timestamp.
-        """
-        return Event(id=Event.new_uuid(), timestamp=time.time(), source=source)
-
-    @staticmethod
-    def new_uuid() -> str:
-        return str(uuid.uuid4())
+    # @model_serializer(mode="wrap")
+    # def _serialize_model(self, handler):
+    #     result = handler(self)
+    #     result["event_type"] = self.__class__.__name__
+    #     return result

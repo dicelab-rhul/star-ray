@@ -51,7 +51,7 @@ class WebAvatar(_WebAvatar):
         await self.__attempt__()
 
     async def __attempt__(self):
-        actions = self._get_all_recent(self._action_buffer)
+        actions = _get_all_recent(self._action_buffer)
         for action in actions:
             self.attempt(action)
 
@@ -66,17 +66,18 @@ class WebAvatar(_WebAvatar):
                     for obs in data:
                         await self._observation_buffer.put(obs)
 
-    def _get_all_recent(self, queue: asyncio.Queue) -> List[Any]:
-        items = []
-        while True:
-            try:
-                items.append(queue.get_nowait())
-            except asyncio.QueueEmpty:
-                break
-        return items
-
     async def __receive__(self, data: Any):
         return await self._action_buffer.put(data)
 
     async def __send__(self) -> Any:
         return await self._observation_buffer.get()
+
+
+def _get_all_recent(queue: asyncio.Queue) -> List[Any]:
+    items = []
+    while True:
+        try:
+            items.append(queue.get_nowait())
+        except asyncio.QueueEmpty:
+            break
+    return items

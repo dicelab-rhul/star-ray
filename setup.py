@@ -19,6 +19,7 @@ setup(
         "numpy",
         "numexpr",
         "omegaconf",
+        "pydantic",
         "h5py",
         # "pylint",
     ],
