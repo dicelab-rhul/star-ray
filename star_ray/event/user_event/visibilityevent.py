@@ -2,7 +2,7 @@
 
 from typing import ClassVar
 from pydantic import validator
-from .event import Event
+from ..event import Event
 
 
 class VisibilityEvent(Event):

@@ -1,22 +1,29 @@
-"""" This package defines various events classes as well as event listener functionality. """
+"""" This package defines various events classes."""
 
 from .event import Event
-from .keyevent import KeyEvent
-from .mouseevent import MouseButtonEvent, MouseMotionEvent
-from .exitevent import ExitEvent
-from .responseevent import SelectResponse, UpdateResponse, ErrorResponse
-from .visibilityevent import VisibilityEvent
-
-from . import listener
-
+from .user_event import (
+    KeyEvent,
+    MouseButtonEvent,
+    MouseMotionEvent,
+    ExitEvent,
+    VisibilityEvent,
+)
+from .action_event import Action
+from .observation_event import (
+    Observation,
+    ActiveObservation,
+    ErrorActiveObservation,
+    ErrorObservation,
+)
 
 __all__ = (
     "Event",
-    # response events
-    "SelectResponse",
-    "UpdateResponse",
-    "ErrorResponse",
-    # inputs events
+    "Action",
+    "Observation",
+    "ActiveObservation",
+    "ErrorActiveObservation",
+    "ErrorObservation",
+    # user input events
     "KeyEvent",
     "MouseButtonEvent",
     "MouseMotionEvent",

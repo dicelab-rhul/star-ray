@@ -1,11 +1,8 @@
 import asyncio
-import itertools
 from typing import List, Any
-from star_ray.agent import Agent, Actuator, Sensor, RoutedActionAgent
-from star_ray.event import ErrorResponse, SelectResponse, UpdateResponse
+from star_ray.agent import Actuator, Sensor, RoutedActionAgent
+from star_ray.event import ErrorObservation, Observation
 from star_ray.utils import _LOGGER
-
-from star_ray.agent.component import Component
 from .socket_handler import SocketHandler, SocketSerde
 
 
@@ -37,44 +34,40 @@ class WebAvatar(RoutedActionAgent, SocketHandler):
         self.__attempt__(actions)
 
     def __perceive__(self):
-        for component in itertools.chain(self.sensors, self.actuators):
+        for component in self.actuators:
             for observation in component.get_observations():
-                if isinstance(observation, ErrorResponse):
-                    # pylint: disable = E1128
-                    observation = self.handle_error_response(component, observation)
-                    if observation:
-                        self._observation_buffer.put_nowait(observation)
-                elif isinstance(observation, SelectResponse):
-                    assert isinstance(component, Sensor)
-                    # pylint: disable = E1128
-                    observation = self.handle_sensor_response(component, observation)
-                    if not observation is None:
-                        # we want to raise an error here if there is no space.
-                        # it probably means the events are coming in too fast and we need to adjust some settings...
-                        self._observation_buffer.put_nowait(observation)
-                elif isinstance(observation, UpdateResponse):
-                    assert isinstance(component, Actuator)
-                    # pylint: disable = E1128
-                    observation = self.handle_actuator_response(component, observation)
-                    if not observation is None:
-                        self._observation_buffer.put_nowait(observation)
+                # pylint: disable = E1128
+                observation = self.handle_actuator_observation(component, observation)
+                if not observation is None:
+                    self._observation_buffer.put_nowait(observation)
 
-    def handle_error_response(self, component: Component, event: ErrorResponse):
+        for component in self.sensors:
+            for observation in component.get_observations():
+                # pylint: disable = E1128
+                observation = self.handle_sensor_observation(component, observation)
+                if not observation is None:
+                    self._observation_buffer.put_nowait(observation)
+
+    def handle_actuator_observation(self, actuator: Actuator, event: Observation):
+        _check_error_observation(event)
         # by default we do not want to send these responses to the web server
+
+        return None
+
+    def handle_sensor_observation(self, actuator: Sensor, event: Observation):
+        _check_error_observation(event)
+        # by default we want to send these responses to the web server
+        return event
+
+
+def _check_error_observation(event: Observation):
+    if isinstance(event, ErrorObservation):
         _LOGGER.warning(
-            "%s received an %s with an internal error %s which was not handled. If the error is being handle, do not call `super()` in `handle_error_response`.",
+            "%s received an %s with an internal error %s which was not handled. If the error is being handle, do not call `super()`",
             str(WebAvatar),
             str(type(event)),
             str(event.exception_type),
         )
-        return None  # this means we fail silently
-
-    def handle_actuator_response(self, component: Component, event: UpdateResponse):
-        # by default we do not want to send these responses to the web server
-        return None
-
-    def handle_sensor_response(self, component: Component, event: SelectResponse):
-        return event  # by default we want to send these responses to the web server
 
 
 def _get_all_recent(queue: asyncio.Queue) -> List[Any]:

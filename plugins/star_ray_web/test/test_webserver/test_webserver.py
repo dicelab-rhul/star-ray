@@ -3,8 +3,8 @@ from typing import List
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
 from star_ray import Ambient, Environment, ActiveActuator, ActiveSensor
-from star_ray.agent.component import Component
-from star_ray.event import ErrorResponse, SelectResponse, Event, UpdateResponse
+from star_ray.agent.component import Sensor, Actuator
+from star_ray.event import Event, Observation, ActiveObservation, ErrorObservation
 from star_ray.agent import _Agent, AgentFactory, attempt
 from star_ray.plugin.web import WebServer, WebAvatar, SocketSerdeText
 import asyncio
@@ -29,23 +29,13 @@ class PingSensor(ActiveSensor):
 
 class MyWebAvatar(WebAvatar):
 
-    async def send(self):
-        # here we wait for new observations to be added to the buffer, this happens during the agents cycle (see self.__perceive__)
-        value = await self._observation_buffer.get()
-        print("send!", value)
-        return value
-
-    def handle_actuator_response(self, component: Component, event: UpdateResponse):
-        print("actuator response: ", event)
+    def handle_actuator_observation(self, component: Actuator, event: Observation):
+        print("actuator observation: ", event)
         return str(event)  # send this to the server to test
 
-    def handle_error_response(self, component: Component, event: ErrorResponse):
-        print("error response: ", event)
-        return None
-
-    def handle_sensor_response(self, component: Component, event: SelectResponse):
-        print("sensor response: ", event)
-        return str(event)  # we are sending text!
+    def handle_sensor_observation(self, component: Sensor, event: Observation):
+        print("sensor observation: ", event)
+        return str(event)
 
 
 class MyWebAvatarFactory(AgentFactory):
@@ -62,10 +52,11 @@ class MyAmbient(Ambient):
 
     def __select__(self, action):
         print("__SELECT__!", action)
-        return SelectResponse(query=action, values={"state": self._state})
+        return ActiveObservation(action_id=action, values={"state": self._state})
 
     def __update__(self, action):
         print("__UPDATE__!", action)
+        return ActiveObservation(action_id=action, values={"ping": True})
 
 
 class MyEnvironment(Environment):

@@ -35,9 +35,7 @@ class SocketHandler(ABC):
         try:
             while True:
                 data = await self.send()
-                print("SENDING", data)
                 data = self.serde.serialize(data)
-                print("SENDING SER", data)
                 await self.__websocket_send(websocket, data)
         except WebSocketDisconnect:
             _LOGGER.debug("Websocket on %s disconnected during __send__", str(self))

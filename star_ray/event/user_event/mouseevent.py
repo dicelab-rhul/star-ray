@@ -2,7 +2,7 @@
 
 from typing import ClassVar, Tuple, List
 from pydantic import validator
-from .event import Event
+from ..event import Event
 
 __all__ = ("MouseButtonEvent", "MouseMotionEvent")
 

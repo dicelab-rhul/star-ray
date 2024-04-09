@@ -1,6 +1,6 @@
 """ Module defining the [ExitEvent] class. [ExitEvent] is used to signal that the program should close."""
 
-from .event import Event
+from ..event import Event
 
 
 class ExitEvent(Event):

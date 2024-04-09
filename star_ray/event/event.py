@@ -9,7 +9,7 @@ EVENT_UUID_FUNC = int64_uuid
 
 
 class Event(BaseModel):
-    """A simple event class with a unique identifier and a timestamp.
+    """An event class with a unique identifier and a timestamp.
 
     Attributes:
         id ([int]): A unique identifier for the event.
