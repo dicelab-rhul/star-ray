@@ -4,7 +4,6 @@ from typing import List
 from dataclasses import dataclass, astuple
 from fastapi import Request
 from star_ray import Ambient, Environment, ActiveActuator, ActiveSensor
-from star_ray.event import SelectResponse, Event
 
 from star_ray.agent import AgentFactory
 from star_ray.plugin.web import WebServer, WebAvatar
@@ -19,19 +18,7 @@ from fastapi.staticfiles import StaticFiles
 
 class MyWebAvatar(WebAvatar):
 
-    async def __receive__(self, data):
-        print("RECIEVED ACTION", data)
-        return await super().__receive__(data)
-
-    async def __send__(self):
-        obs = await super().__send__()
-        print("SENDING OBSERVATION", obs)
-        return obs
-
     def attempt(self, action: bytes):
-        pass
-
-    def perceive(self, component, observation) -> str:
         pass
 
 

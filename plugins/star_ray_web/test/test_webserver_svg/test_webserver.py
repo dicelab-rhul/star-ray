@@ -10,11 +10,11 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from star_ray import Ambient, Environment, ActiveActuator, ActiveSensor
-from star_ray.event import SelectResponse, UpdateResponse
-from star_ray.agent import Agent, AgentFactory
+from star_ray.agent import Agent, AgentFactory, attempt
 from star_ray.plugin.web import WebServer, WebAvatar
 
-from star_ray.event import MouseButtonEvent, Event
+
+from star_ray.event import MouseButtonEvent, Event, ActiveObservation
 import asyncio
 import json
 import math
@@ -55,11 +55,11 @@ class MyActuator(ActiveActuator):
         super().__init__()
         self._strength = strength
 
-    @ActiveActuator.attempt
+    @attempt
     def set_color(self, color: str):
         return SetColorAction.new(self.id, color)
 
-    @ActiveActuator.attempt
+    @attempt
     def set_position(self, position: Tuple[float, float]):
         return SetPositionAction.new(self.id, position, self._strength)
 
@@ -98,21 +98,24 @@ class MyAgent(Agent):
 
 
 class MyWebAvatar(WebAvatar):
+    pass
 
-    def attempt(self, data: str):
-        # this contains a click event
-        data = json.loads(data)
-        # set the color to something random!
-        self.actuators[0].set_color(None)
-        self.actuators[0].set_position((data["x"], data["y"]))
+    # TODO this is broken currently!
 
-    def perceive(self, component, observation) -> str:
-        if isinstance(observation, SelectResponse):
-            # this will get the current colour in the ambient, we are sending it to the UI
-            return json.dumps(observation.values)
-        else:
-            # don't do anything with an UpdateResponse
-            return None
+    # def attempt(self, data: str):
+    #     # this contains a click event
+    #     data = json.loads(data)
+    #     # set the color to something random!
+    #     self.actuators[0].set_color(None)
+    #     self.actuators[0].set_position((data["x"], data["y"]))
+
+    # def perceive(self, component, observation) -> str:
+
+    #         # this will get the current colour in the ambient, we are sending it to the UI
+    #         return json.dumps(observation.values)
+    #     else:
+    #         # don't do anything with an UpdateResponse
+    #         return None
 
 
 class MyWebAvatarFactory(AgentFactory):
@@ -130,8 +133,8 @@ class MyAmbient(Ambient):
 
     def __select__(self, action):
         # we only have a single action type, so just always return the color state
-        return SelectResponse.new(
-            self.id, action, True, {"color": self._color, "position": self._position}
+        return ActiveObservation(
+            action_id=action, values={"color": self._color, "position": self._position}
         )
 
     def __update__(self, action):

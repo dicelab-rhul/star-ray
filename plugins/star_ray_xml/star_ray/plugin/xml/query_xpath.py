@@ -1,33 +1,26 @@
 # pylint: disable=[I1101,W0212,W0221]
 
 
-from dataclasses import dataclass, astuple
 from typing import List, Dict, Any
 from lxml import etree as ET
 
-from star_ray.event import SelectResponse, UpdateResponse, ErrorResponse, Event
+from star_ray.event import Event, ActiveObservation, ErrorActiveObservation
 from ._utils import _tostring, _xml_to_primitive
 
 
-@dataclass
 class QueryXPath(Event):
     xpath: str
     attributes: List[str] | Dict[str, Any] | str
 
-    @staticmethod
-    def new(source: str, xpath: str, attributes: List[str] | Dict[str, Any] | str):
-        return QueryXPath(*astuple(Event.new(source)), xpath, attributes)
-
     def __select__(
         self,
-        source: str,
         root: ET._Element,
         namespaces: Dict[str, str] = None,
         **kwargs,
-    ) -> SelectResponse | ErrorResponse:
+    ) -> ActiveObservation | ErrorActiveObservation:
         if isinstance(self.attributes, list):
             results = _select(self.xpath, self.attributes, root, namespaces=namespaces)
-            return SelectResponse.new(source, self, success=True, data=results)
+            return ActiveObservation(action_id=self, values=results)
         else:
             raise TypeError(
                 f"Invalid type {type(self.attributes)} for SELECT query attributes."
@@ -35,14 +28,13 @@ class QueryXPath(Event):
 
     def __update__(
         self,
-        source: str,
         root: ET._Element,
         namespaces: Dict[str, str] = None,
         parser: ET.XMLParser = None,
         **kwargs,
-    ) -> UpdateResponse | ErrorResponse:
+    ) -> ActiveObservation | ErrorActiveObservation:
         if isinstance(self.attributes, dict | str):
-            return _update(source, root, self, namespaces=namespaces, parser=parser)
+            return _update(root, self, namespaces=namespaces, parser=parser)
         else:
             raise ValueError(
                 f"Invalid type {type(self.attributes)} for update query attributes."
@@ -56,8 +48,6 @@ def _select(
     namespaces: Dict[str, str] = None,
 ):
     elements = root.xpath(xpath, namespaces=namespaces)
-    print("----", xpath, elements)
-
     # TODO some xpath queries do not return a list of elements, they may return a value (e.g. a float from `count()`)
     if isinstance(elements, (int, float, bool, str)):
         return elements
@@ -89,13 +79,12 @@ def _select_element(attributes: List[str], element: Any):
 
 
 def _update(
-    source: str,
     root: ET._Element,
     query: "QueryXPath",
     namespaces: Dict[str, str] = None,
     parser: ET.XMLParser = None,
-    return_old_values: bool = False,
-    return_new_values: bool = False,
+    # return_old_values: bool = False,
+    # return_new_values: bool = False,
 ):
     # gather elements from xpath query
     elements = root.xpath(query.xpath, namespaces=namespaces)
@@ -104,7 +93,7 @@ def _update(
         _update_element(query.attributes, element, namespaces=namespaces, parser=parser)
         for element in elements
     ]
-    return UpdateResponse.new(source, query, success=True)
+    return ActiveObservation(action_id=query)
 
 
 def _update_element(

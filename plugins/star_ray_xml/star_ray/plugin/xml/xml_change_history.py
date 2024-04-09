@@ -1,14 +1,15 @@
 # pylint: disable=W0212
-from types import EllipsisType
 from datetime import datetime
-from dataclasses import dataclass, astuple, asdict, field
-from typing import List, Tuple, Type, Optional, Dict
+from typing import List, Dict
 from ast import literal_eval
 from lxml import etree
+from pydantic import validator, computed_field
+import types
 
-from star_ray.event import Event, SelectResponse
+from star_ray.event import Action, Observation, ActiveObservation
 from star_ray.environment.history._h5history import _HistoryH5Sync
 from star_ray.environment.history._history import _History
+from star_ray.utils import SliceType, EllipsisType
 from star_ray.agent import ActiveSensor
 
 from .xml_change import XMLChangeTracker
@@ -17,26 +18,44 @@ from .xml_change import XMLChangeTracker
 __all__ = ("XMLHistory", "XMLHistorySensor", "QueryXMLHistory", "xml_history")
 
 
+# TODO this should probably be a passive sensor. We dont want to constantly be polling for new updates
 class XMLHistorySensor(ActiveSensor):
 
     def __sense__(self) -> List["QueryXMLHistory"]:
-        return [QueryXMLHistory.new(self.id, index=...)]
+        return [QueryXMLHistory(index=...)]
 
 
-@dataclass
-class QueryXMLHistory(Event):
+class QueryXMLHistory(Action):
 
-    index: int | slice | EllipsisType
+    index_: int | SliceType | EllipsisType
 
-    @staticmethod
-    def new(
-        source: str,
-        index: slice | int | EllipsisType = ...,
-    ) -> "QueryXMLHistory":
-        return QueryXMLHistory(
-            *astuple(Event.new(source)),
-            index=index,
-        )
+    def __init__(self, index: int | slice | types.EllipsisType = None, **kwargs):
+        super().__init__(index_=index, **kwargs)
+
+    @validator("index_")
+    @classmethod
+    def validate_index(cls, value):
+        if isinstance(value, int):
+            return value
+        elif isinstance(value, slice):
+            return SliceType(value.start, value.stop, value.step)
+        elif isinstance(value, types.EllipsisType):
+            return EllipsisType()
+        else:
+            raise ValueError(
+                f"Invalid type: {type(value)} must be an index type (int, slice, Ellipsis)"
+            )
+
+    @computed_field()
+    @property
+    def index(self) -> int | slice | types.EllipsisType:
+        if isinstance(self.index_, int):
+            return self.index_
+        else:
+            return self.index_.get_value()
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class XMLHistory:
@@ -86,34 +105,28 @@ class XMLHistory:
 
     def _new_response(
         self,
-        query_id: str,
         index: int | slice | EllipsisType,
-        response_source: Optional[str] = None,
+        action: Action = None,
     ):
-        return SelectResponse.new(
-            response_source,
-            query_id,
-            success=True,
-            data=self._history[index],
-        )
+        if action:
+            return ActiveObservation(
+                action_id=action,
+                values=self._history[index],
+            )
+        else:
+            Observation(values=self._history[index])
 
-    def _handle_ellipsis(
-        self, query: QueryXMLHistory, response_source: Optional[str] = None
-    ):
+    def _handle_ellipsis(self, query: QueryXMLHistory):
         assert query.index is ...
         qa = self._history_queried_at.get(query.source, 0)
         self._history_queried_at[query.source] = len(self._history)
-        return self._new_response(
-            query.id, slice(qa, None, None), response_source=response_source
-        )
+        return self._new_response(slice(qa, None, None), action=query)
 
-    def __select__(self, query: QueryXMLHistory, response_source: Optional[str] = None):
+    def __select__(self, query: QueryXMLHistory):
         if query.index is ...:
-            return self._handle_ellipsis(query, response_source=response_source)
+            return self._handle_ellipsis(query)
         else:
-            return self._new_response(
-                query.id, query.index, response_source=response_source
-            )
+            return self._new_response(query.index, action=query)
 
     def close(self):
         self._history.close()

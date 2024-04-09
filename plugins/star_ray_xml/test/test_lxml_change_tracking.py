@@ -34,9 +34,7 @@ class TestXMLChangeHistory(unittest.TestCase):
             pass
 
         ambient = MyXMLAmbient([], xml=XML, namespaces=NAMESPACES)
-        query = QueryXPath.new(
-            "test", xpath="//svg:circle", attributes={"cx": 10, "cy": 10}
-        )
+        query = QueryXPath(xpath="//svg:circle", attributes={"cx": 10, "cy": 10})
         # update cx and cy
         ambient.__update__(query)
         # check that history

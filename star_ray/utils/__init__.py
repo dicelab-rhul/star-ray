@@ -6,7 +6,11 @@ from ._logging import _LOGGER
 from .dict_observer import DictObservable
 from ._uuid import int64_uuid, str_uuid4
 
+from ._types import SliceType, EllipsisType
+
 __all__ = (
+    "SliceType",
+    "EllipsisType",
     "DictObservable",
     "_Future",
     "error",

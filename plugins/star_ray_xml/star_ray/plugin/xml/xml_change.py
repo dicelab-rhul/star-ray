@@ -7,9 +7,7 @@ from lxml import etree
 
 def _split_element_path(path):
     # Regular expression to match '/' outside curly brackets
-    pattern = r"/(?![^{]*})"
-
-    # Split the path based on the pattern
+    pattern = r"/(?![^{]*})"  # TODO revise this? its a bit nebulous
     return re.split(pattern, path)
 
 

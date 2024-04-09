@@ -1,27 +1,27 @@
 # pylint: disable=[I1101,W0212,W0221, W0237]
 
-from dataclasses import astuple
 from typing import List, Dict, Any
-
+from star_ray.event import Observation, ActiveObservation, ErrorActiveObservation
 from .query_xpath import QueryXPath
-from star_ray.event import ErrorResponse, SelectResponse, UpdateResponse
 
 
 class QueryXML(QueryXPath):
 
-    @staticmethod
-    def new(
-        source: str, element_id: str, attributes: str | List[str] | Dict[str, Any]
-    ) -> "QueryXML":
-        assert isinstance(attributes, (list, dict, str))
+    def __init__(
+        self,
+        element_id: str = None,
+        attributes: str | List[str] | Dict[str, Any] = None,
+        **kwargs,
+    ):
         xpath = f"//*[@id='{element_id}']"
-        return QueryXML(*astuple(QueryXPath.new(source, xpath, attributes)))
+        super().__init__(xpath=xpath, attributes=attributes, **kwargs)
 
-    def __select__(self, *args, **kwargs) -> SelectResponse | ErrorResponse:
+    def __select__(self, *args, **kwargs) -> ActiveObservation | ErrorActiveObservation:
         response = super().__select__(*args, **kwargs)
+        # TODO reconsider this validation step...?
         return _validate_select_response(response, self)
 
-    def __update__(self, *args, **kwargs) -> UpdateResponse | ErrorResponse:
+    def __update__(self, *args, **kwargs) -> ActiveObservation | ErrorActiveObservation:
         return super().__update__(*args, **kwargs)
 
     @property
@@ -45,8 +45,6 @@ def _validate_xml_element_length(query: QueryXML, values: List[Any]):
         )
 
 
-def _validate_select_response(response: SelectResponse, query: QueryXPath):
-    if response.success:
-        _validate_xml_element_length(query, response.values)
-        response.data = (query.element_id, response.values[0])
+def _validate_select_response(response: Observation, query: QueryXPath):
+    _validate_xml_element_length(query, response.values)
     return response

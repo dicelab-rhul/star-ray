@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from ..utils import new_uuid
 
 from ..agent import _Agent
+from ..event import Action, ActiveObservation, ErrorActiveObservation
 
 
 class Ambient(ABC):
@@ -50,11 +51,11 @@ class Ambient(ABC):
         self._agents.clear()
 
     @abstractmethod
-    def __select__(self, action):
+    def __select__(self, action: Action) -> ActiveObservation | ErrorActiveObservation:
         pass
 
     @abstractmethod
-    def __update__(self, action):
+    def __update__(self, action: Action) -> ActiveObservation | ErrorActiveObservation:
         pass
 
     async def initialise(self):
