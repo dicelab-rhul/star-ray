@@ -20,12 +20,12 @@ from fastapi import (
 )
 
 import uvicorn
+from star_ray.utils import _LOGGER
 from star_ray.agent import AgentFactory
 from star_ray.environment.ambient import Ambient
 from .auth import authenticate_user
 from .webavatar import WebAvatar
 
-_LOGGER = logging.getLogger("star_ray.web")
 
 # status codes
 WS_TRY_AGAIN = 1013
@@ -76,6 +76,25 @@ class WebServer:
             _STAR_RAY_TEMPLATES,
             copy.deepcopy(_STAR_RAY_TEMPLATES_DATA_DEFAULT),
         )
+
+    async def websocket_endpoint(
+        self, websocket: WebSocket, user_id: str = Depends(authenticate_user)
+    ):
+        _LOGGER.info("Websocket connecting: {user: %s}", user_id)
+        if not user_id:
+            await websocket.close(code=1008)
+            return
+        self._open_connections[user_id] = True
+        # create avatar using the factory provided
+        avatar = self._avatar_factory(user_id)
+        # TODO it would be better to fail earlier...
+        assert isinstance(avatar, WebAvatar)
+        self._ambient.add_agent(avatar)
+        await avatar.serve(websocket)
+        # the user disconnected, remove the agent
+        self._ambient.remove_agent(avatar)
+        self._open_connections[user_id] = False
+        _LOGGER.info("WebSocket disconnected: {user: %s}", user_id)
 
     def add_template_namespace(
         self,
@@ -138,91 +157,3 @@ class WebServer:
         config = uvicorn.Config(app=self._app, host=host, port=port, log_level="info")
         server = uvicorn.Server(config)
         await server.serve()
-
-    async def websocket_endpoint(
-        self, websocket: WebSocket, user_id: str = Depends(authenticate_user)
-    ):
-        _LOGGER.info("Websocket connecting: {user: %s}", user_id)
-        if not user_id:
-            await websocket.close(code=1008)
-            return
-        await websocket.accept()
-        self._open_connections[user_id] = True
-        # create avatar using the the factory provided
-        user_agent = self._avatar_factory(user_id)
-        assert isinstance(user_agent, WebAvatar)  # some methods are required...
-        # add the avatar to the environment (ambient)
-        self._ambient.add_agent(user_agent)
-
-        send, receive = WebServer._new_socket_handler(user_agent)
-        # Task for receiving data
-        receive_task = asyncio.create_task(receive(websocket, user_agent))
-        # Task for sending data
-        send_task = asyncio.create_task(send(websocket, user_agent))
-
-        # Wait for either task to finish (e.g., due to WebSocketDisconnect)
-        _, pending = await asyncio.wait(
-            [receive_task, send_task], return_when=asyncio.FIRST_COMPLETED
-        )
-
-        # Cancel any pending tasks to clean up
-        for task in pending:
-            task.cancel()
-
-        self._open_connections[user_id] = False
-        self._ambient.remove_agent(user_agent)
-        _LOGGER.info("WebSocket disconnected: {user: %s}", user_id)
-
-    @staticmethod
-    def _new_socket_handler(avatar: WebAvatar):
-        dtype = avatar._protocol_dtype
-
-        async def receive_text(websocket):
-            return await websocket.receive_text()
-
-        async def receive_bytes(websocket):
-            return await websocket.receive_bytes()
-
-        async def receive_json(websocket):
-            return await websocket.receive_json()
-
-        async def send_text(websocket, data):
-            await websocket.send_text(data)
-
-        async def send_bytes(websocket, data):
-            await websocket.send_bytes(data)
-
-        async def send_json(websocket, data):
-            await websocket.send_json(data)
-
-        dtype_receive_map = {
-            "byte": receive_bytes,
-            "text": receive_text,
-            "json": receive_json,
-        }
-
-        dtype_send_map = {"byte": send_bytes, "text": send_text, "json": send_json}
-
-        assert dtype in dtype_receive_map
-        assert dtype in dtype_send_map
-
-        _websocket_send = dtype_send_map[dtype]
-        _websocket_receive = dtype_receive_map[dtype]
-
-        async def _receive(websocket: WebSocket, user_agent: WebAvatar):
-            try:
-                while True:
-                    data = await _websocket_receive(websocket)
-                    await user_agent.__receive__(data)
-            except WebSocketDisconnect:
-                pass
-
-        async def _send(websocket: WebSocket, user_agent: WebAvatar):
-            try:
-                while True:
-                    data = await user_agent.__send__()
-                    await _websocket_send(websocket, data)
-            except WebSocketDisconnect:
-                pass
-
-        return _send, _receive

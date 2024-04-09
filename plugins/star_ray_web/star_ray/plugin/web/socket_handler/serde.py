@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import ClassVar, Any
+from typing import ClassVar, Any, ByteString
 from fastapi import WebSocket
+import json
 
 
 class SocketSerde(ABC):
@@ -22,16 +23,65 @@ class SocketSerde(ABC):
         pass
 
 
-class SocketSerdeDict(SocketSerde):
+class SocketSerdeRaw(SocketSerde):
 
-    def __init__(self):
-        super().__init__(protocol_dtype=SocketSerde.PROTOCOL_JSON)
+    def __init__(self, protocol_dtype):
+        super().__init__(protocol_dtype=protocol_dtype)
 
     def serialize(self, event):
         return event
 
     def deserialize(self, event):
         return event
+
+
+class SocketSerdeDict(SocketSerdeRaw):
+
+    def __init__(self):
+        super().__init__(protocol_dtype=SocketSerde.PROTOCOL_JSON)
+
+    def deserialize(self, event):
+        _validate(event, dict, "JSON")
+        return event
+
+    def serialize(self, event):
+        _validate(event, dict, "JSON")
+        return event
+
+
+class SocketSerdeText(SocketSerdeRaw):
+
+    def __init__(self):
+        super().__init__(protocol_dtype=SocketSerde.PROTOCOL_TEXT)
+
+    def deserialize(self, event):
+        _validate(event, str, "TEXT")
+        return event
+
+    def serialize(self, event):
+        _validate(event, str, "TEXT")
+        return event
+
+
+class SocketSerdeBytes(SocketSerdeRaw):
+
+    def __init__(self):
+        super().__init__(protocol_dtype=SocketSerde.PROTOCOL_BYTES)
+
+    def deserialize(self, event):
+        _validate(event, bytes, "BYTES")
+        return event
+
+    def serialize(self, event):
+        _validate(event, bytes, "BYTES")
+        return event
+
+
+def _validate(event, types, protocol):
+    if not isinstance(event, (types)):
+        raise TypeError(
+            f"Receive invalid type: {type(event)}, expected `{types}` type when using protocol {protocol}."
+        )
 
 
 def _get_protocol_funcs(serde):

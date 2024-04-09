@@ -8,7 +8,7 @@ class Response(Event):
     # this is the source of the query
     query_id: int
 
-    @validator("query_id")
+    @validator("query_id", pre=True, always=True)
     def _validate_query_id(cls, value):  # pylint: disable=E0213
         if isinstance(value, Event):
             return value.id
@@ -21,16 +21,21 @@ class Response(Event):
 class SelectResponse(Response):
     values: List[Any] | Dict[str, Any]
 
+    def __init__(self, query: Event | int, values: List[Any] | Dict[str, Any]):
+        super().__init__(query_id=query, values=values)
+
 
 class UpdateResponse(Response):
-    pass
+
+    def __init__(self, query: Event | int):
+        super().__init__(query_id=query)
 
 
 class ErrorResponse(Response):
     exception_type: str
     traceback_message: str
 
-    def __init__(self, source: int, query: Event, exception: Exception):
+    def __init__(self, query: Event | int, exception: Exception):
         exception_type = exception.__class__.__name__
         traceback_message = "\n".join(
             traceback.format_exception(
@@ -38,7 +43,6 @@ class ErrorResponse(Response):
             )
         )
         super().__init__(
-            source=source,
             query_id=query,
             exception_type=exception_type,
             traceback_message=traceback_message,

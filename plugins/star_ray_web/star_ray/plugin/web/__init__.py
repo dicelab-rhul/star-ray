@@ -4,7 +4,10 @@ from .webserver import WebServer
 from .socket_handler import (
     SocketHandler,
     SocketSerde,
+    SocketSerdeRaw,
     SocketSerdeDict,
+    SocketSerdeText,
+    SocketSerdeBytes,
     SocketSerdePydantic,
 )
 

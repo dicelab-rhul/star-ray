@@ -3,6 +3,7 @@ from typing import Any
 from abc import ABC, abstractmethod
 from fastapi import WebSocket, WebSocketDisconnect
 from .serde import SocketSerde, SocketSerdeDict, _get_protocol_funcs
+from star_ray.utils import _LOGGER
 
 
 class SocketHandler(ABC):
@@ -26,16 +27,22 @@ class SocketHandler(ABC):
                 data = self.serde.deserialize(data)
                 await self.receive(data)
         except WebSocketDisconnect:
-            pass
+            _LOGGER.debug("Websocket on %s disconnected during __receive_", str(self))
+        except Exception:  # pylint: disable=W0718
+            _LOGGER.exception("Error in __receive__")
 
     async def __send__(self, websocket: WebSocket):
         try:
             while True:
                 data = await self.send()
+                print("SENDING", data)
                 data = self.serde.serialize(data)
+                print("SENDING SER", data)
                 await self.__websocket_send(websocket, data)
         except WebSocketDisconnect:
-            pass
+            _LOGGER.debug("Websocket on %s disconnected during __send__", str(self))
+        except Exception:  # pylint: disable=W0718
+            _LOGGER.exception("Error in __send__ ")
 
     async def serve(self, websocket: WebSocket):
         if self._websocket:
@@ -52,6 +59,7 @@ class SocketHandler(ABC):
         )
         for task in pending:
             task.cancel()
+        _LOGGER.debug("Stopped serving on %s.", str(self))
 
     async def close(self):
         if self._websocket:

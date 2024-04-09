@@ -1,9 +1,9 @@
 import asyncio
 import signal
-
+import time
 from .wrapper_state import _State
 from .ambient import Ambient
-from ..utils import _Future
+from ..utils import _Future, _LOGGER
 
 
 class Environment:
@@ -14,9 +14,9 @@ class Environment:
         self._wait = wait
         self._ambient = _State.new(ambient)
         self._step = self._step_sync if sync else self._step_async
+        self._cycle = 0
 
     def run(self):
-
         async def _run():
             event_loop = asyncio.get_event_loop()
             for sig in (signal.SIGINT, signal.SIGTERM):
@@ -27,12 +27,14 @@ class Environment:
                     ),
                 )
             await self.initialise(event_loop)
+            _LOGGER.debug("Environment running...")
             await asyncio.gather(*self.get_schedule())
 
         asyncio.run(_run())
 
     async def initialise(self, event_loop):
         await self._ambient.initialise()
+        _LOGGER.debug("Environment initialised successfully.")
 
     def get_schedule(self):
         return [asyncio.create_task(self.loop())]
@@ -44,11 +46,12 @@ class Environment:
             await asyncio.sleep(self._wait)
 
     async def step(self) -> bool:
+        self._cycle += 1
         # return False if the simulation should stop? TODO more info might be useful...
         agents = self._ambient.get_agents()
-        if len(agents) == 0:
-            return False
+        _LOGGER.debug("STEP(%s) - Agents (%s)", self._cycle, str(len(agents)))
         await self._step(agents)
+        # TODO implement some stopping condition?
         return True
 
     async def _step_sync(self, agents) -> None:
