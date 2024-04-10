@@ -46,7 +46,7 @@ _STAR_RAY_TEMPLATES = Jinja2Templates(directory=_STAR_RAY_TEMPLATE_PATH)
 _STAR_RAY_TEMPLATES_DATA_DEFAULT = {
     "handle_mouse_button.js": dict(disable_context_menu=True, debug=True),
     "handle_keyboard.js": dict(
-        debug=True, cancel_arrow_scroll=False, send_key_hold=False
+        debug=True, disable_arrow_scroll=False, send_key_hold=False
     ),
 }
 

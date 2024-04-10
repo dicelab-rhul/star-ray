@@ -6,6 +6,7 @@ from .action_routing import RoutedActionAgent
 
 from .component import (
     attempt,
+    OnAwake,
     Sensor,
     Actuator,
     Component,
@@ -19,6 +20,7 @@ __all__ = (
     "_Observations",
     "Agent",
     "attempt",
+    "OnAwake",
     "Sensor",
     "Actuator",
     "Component",

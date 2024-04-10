@@ -27,7 +27,7 @@ class SocketHandler(ABC):
                 data = self.serde.deserialize(data)
                 await self.receive(data)
         except WebSocketDisconnect:
-            _LOGGER.debug("Websocket on %s disconnected during __receive_", str(self))
+            _LOGGER.debug("Websocket on %s disconnected during __receive__", str(self))
         except Exception:  # pylint: disable=W0718
             _LOGGER.exception("Error in __receive__")
 

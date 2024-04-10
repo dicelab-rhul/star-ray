@@ -48,13 +48,14 @@ class WebAvatar(RoutedActionAgent, SocketHandler):
                 if not observation is None:
                     self._observation_buffer.put_nowait(observation)
 
-    def handle_actuator_observation(self, actuator: Actuator, event: Observation):
+    def handle_actuator_observation(
+        self, actuator: Actuator, event: Observation
+    ) -> Any:
         _check_error_observation(event)
         # by default we do not want to send these responses to the web server
-
         return None
 
-    def handle_sensor_observation(self, actuator: Sensor, event: Observation):
+    def handle_sensor_observation(self, sensor: Sensor, event: Observation) -> Any:
         _check_error_observation(event)
         # by default we want to send these responses to the web server
         return event

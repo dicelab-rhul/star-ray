@@ -49,7 +49,7 @@ class Environment:
         self._cycle += 1
         # return False if the simulation should stop? TODO more info might be useful...
         agents = self._ambient.get_agents()
-        _LOGGER.debug("STEP(%s) - Agents (%s)", self._cycle, str(len(agents)))
+        _LOGGER.debug("STEP(%s) - Agents(%s)", self._cycle, str(len(agents)))
         await self._step(agents)
         # TODO implement some stopping condition?
         return True

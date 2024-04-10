@@ -1,5 +1,10 @@
+from __future__ import annotations
 from abc import ABCMeta
+from typing import TYPE_CHECKING
 from ...utils import int64_uuid
+
+if TYPE_CHECKING:
+    from ..agent import Agent
 
 ATTEMPT_METHOD_CLS_VAR = "__attemptmethods__"
 IS_ATTEMPT_VAR = "is_attempt"
@@ -30,6 +35,15 @@ class Component(metaclass=ComponentMeta):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._id: int = int64_uuid()
+        # this will be set by the agent when this component is added to it.
+        # generally it should not be accessed unless you know what you are doing!
+        self._agent = None
+
+    def on_add(self, agent: Agent):
+        self._agent = agent
+
+    def on_remove(self, agent: Agent):
+        self._agent = None
 
     @property
     def id(self):

@@ -1,8 +1,7 @@
 from abc import abstractmethod, ABC
-import uuid
 from typing import List, Set
 from .component import Sensor, Actuator, Component
-from ..utils import DictObservable, int64_uuid
+from ..utils import int64_uuid
 
 
 class AgentFactory(ABC):
@@ -28,7 +27,6 @@ class Agent(ABC):
         if len(self.sensors) != len(sensors) or len(self.actuators) != len(actuators):
             print(len(self.sensors), len(sensors))
             print(len(self.actuators), len(actuators))
-
             raise TypeError(
                 "Components were not added to this agent upon initialisation, did you override `add_component` and forget to call super()?"
             )
@@ -69,14 +67,16 @@ class Agent(ABC):
             self._actuators.add(component)
         else:
             raise TypeError(f"Unsupported component type: {type(component)}")
+        component.on_add(self)
 
     def remove_component(self, component: Component):
         if isinstance(component, Sensor):
-            self._sensors.remove(component.id)
+            self._sensors.remove(component)
         elif isinstance(component, Actuator):
-            self._actuators.remove(component.id)
+            self._actuators.remove(component)
         else:
             raise TypeError(f"Unsupported component type: {type(component)}")
+        component.on_remove(self)
 
     @abstractmethod
     def __cycle__(self):

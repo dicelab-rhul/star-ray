@@ -25,7 +25,7 @@ class KeyEvent(Event):
     DOWN: ClassVar[int] = 1
     HOLD: ClassVar[int] = 2
 
-    @validator("status")
+    @validator("status", pre=True, always=True)
     def _validate_status(cls, value: Union[str, int]):  # pylint: disable=E0213
         if isinstance(value, str):
             if "release" in value or value == "up":

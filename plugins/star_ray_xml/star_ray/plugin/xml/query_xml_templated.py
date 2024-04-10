@@ -22,6 +22,14 @@ _ENV.globals["max"] = max
 
 class QueryXMLTemplated(QueryXML):
 
+    def __init__(
+        self,
+        element_id: str = None,
+        attributes: str | List[str] | Dict[str, Any] = None,
+        **kwargs,
+    ):
+        super().__init__(element_id=element_id, attributes=attributes, **kwargs)
+
     # TODO validator for attributes (see below)
     # @staticmethod
     # def new(

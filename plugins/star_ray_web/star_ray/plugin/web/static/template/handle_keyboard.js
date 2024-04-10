@@ -3,7 +3,7 @@ import { WebSocketModule } from '/static/star_ray/websocket.js';
 function handleKey(event, status) {
     var data = {
         event_type: "KeyEvent",
-        source: "user", // TODO this should be something like the users session key
+        source: 0, // TODO this should be something like the users session key
         // we should hope these are consistent across browsers + OS ...
         // TODO if we encounter problems, use a library like keycode-js? 
         key: event.key,
@@ -18,7 +18,7 @@ function handleKey(event, status) {
 }
 
 function handleKeyDown(event) {
-    {% if cancel_arrow_scroll %}
+    {% if disable_arrow_scroll %}
     if (event.key.startsWith('Arrow')) {
         event.preventDefault();
     }

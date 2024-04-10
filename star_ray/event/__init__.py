@@ -7,6 +7,7 @@ from .user_event import (
     MouseMotionEvent,
     ExitEvent,
     VisibilityEvent,
+    JoyStickEvent,
 )
 from .action_event import Action
 from .observation_event import (
@@ -25,6 +26,7 @@ __all__ = (
     "ErrorObservation",
     # user input events
     "KeyEvent",
+    "JoyStickEvent",
     "MouseButtonEvent",
     "MouseMotionEvent",
     "ExitEvent",

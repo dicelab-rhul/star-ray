@@ -1,10 +1,12 @@
+""" Defines 'active' component classes : [ActiveComponent], [ActiveActuator], [ActiveSensor]. An active component is one that makes requests to the environment (actions) to sense (in the case of sensors) and to act (in the case of actuators). Sensing and acting are tied to the agents event cycle which is typically managed by the environment execution scheduler. See also 'passive' components TODO link. """
+
 from __future__ import annotations  # make type hints work :)
-from typing import List, TYPE_CHECKING
+from typing import Any, List, TYPE_CHECKING
 
 from abc import abstractmethod
 from functools import wraps
 
-from ...event import Event
+from ...event import Event, Observation, Action
 
 from .component import Component, Sensor, Actuator
 
@@ -19,13 +21,18 @@ class ActiveComponent(Component):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # actions to attempt in the current cycle
-        self._actions: List[Event] = []
+        self._actions: List[Action] = []
         # observations that result from self._actions
         self._observations: _Observations = _Observations.empty()
 
-    def get_observations(self) -> List[Event]:
-        # we should be consuming these here....
-        return list(self._observations)
+    def get_observations(self) -> List[Observation]:
+        return list(filter(None, self._observations))
+
+    def get_actions(self) -> List[Action]:
+        return list(filter(None, self._actions))
+
+    def __transduce__(self, events: List[Observation]) -> List[Observation]:
+        return events
 
     @abstractmethod
     def __query__(self, state: _State):
@@ -43,23 +50,42 @@ class ActiveComponent(Component):
 class ActiveSensor(ActiveComponent, Sensor):
 
     def __query__(self, state: _State):
-        self._actions = self.__sense__()  # see the __sense__ method.
+        # get sense actions
+        self._actions = self.__sense__()
+        # set the source of these actions to this sensor
         self._set_source(self._actions)
+        # attempt the sense act and get the resulting observations
         self._observations = state.select(self._actions)
+        # preprocess the observations ready to be received by the agent
+        self._observations = self.__transduce__(self._observations)
+        # clear sense actions ready for the next execution cycle
         self._actions.clear()
 
     def __sense__(self) -> List[Event]:
-        """This method can be overriden to create a sensor that does not depend on calls to `attempt` methods. This is useful if the sensor should always request the same __kind__ of data.
+        """This method can be overriden to create a sensor that does not depend on calls to `attempt` methods. This is useful if the sensor should always request the same kind of data.
 
-        The default implementation of this method returns any actions returned by `attempt` methods implemented by this sensor.
+        The default implementation of this method returns any actions that are given by the `attempt` methods implemented by this sensor.
 
         Example:
         ```
-        class PositionSensor(ActiveSensor):
+        class MySensor(ActiveSensor):
             def __sense__(self):
                 # new actions should always be created, do not re-use events!
-                return [QueryAgentPosition()]
+                return [GetPosition()]
         ```
+        It is also possible to combine this with `attempt` using the `get_actions()` method.
+        Example 2:
+        ```
+        class MySensor(ActiveSensor):
+
+            @attempt
+            def turn(self):
+                return GetDirection()
+
+            def __sense__(self):
+                return [GetPosition(), *self.get_actions()]
+        ```
+
         See also:
             [`ActiveActuator.__attempt__`]
         """
@@ -69,9 +95,15 @@ class ActiveSensor(ActiveComponent, Sensor):
 class ActiveActuator(ActiveComponent, Actuator):
 
     def __query__(self, state: _State):
+        # get actions
         self._actions = self.__attempt__()
+        # set the source of these actions to this actuator
         self._set_source(self._actions)
+        # attempt the sense act and get the resulting observations
         self._observations = state.update(self._actions)
+        # preprocess the observations ready to be received by the agent
+        self._observations = self.__transduce__(self._observations)
+        # clear sense actions ready for the next execution cycle
         self._actions.clear()
 
     def __attempt__(self):

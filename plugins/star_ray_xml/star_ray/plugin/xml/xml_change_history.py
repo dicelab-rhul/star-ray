@@ -32,7 +32,7 @@ class QueryXMLHistory(Action):
     def __init__(self, index: int | slice | types.EllipsisType = None, **kwargs):
         super().__init__(index_=index, **kwargs)
 
-    @validator("index_")
+    @validator("index_", pre=True, always=True)
     @classmethod
     def validate_index(cls, value):
         if isinstance(value, int):
@@ -167,7 +167,7 @@ def xml_history(
             if not isinstance(query, QueryXMLHistory):
                 return original_select(self, query)
             else:
-                return self._history.__select__(query, response_source=self.id)
+                return self._history.__select__(query)
 
         cls.__select__ = __select_wrapper
         return cls

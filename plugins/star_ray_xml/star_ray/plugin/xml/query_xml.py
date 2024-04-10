@@ -47,4 +47,5 @@ def _validate_xml_element_length(query: QueryXML, values: List[Any]):
 
 def _validate_select_response(response: Observation, query: QueryXPath):
     _validate_xml_element_length(query, response.values)
+    response.values = response.values[0]
     return response

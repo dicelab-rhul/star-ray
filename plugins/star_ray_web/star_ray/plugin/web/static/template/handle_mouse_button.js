@@ -6,8 +6,8 @@ function handleMouseButton(event, status) {
     var targets = elements.filter(el => el.id).map(el => el.id);
     var data = {
         event_type: "MouseButtonEvent",
-        source: "user", // TODO this should be something like the users session key
-        targets: targets,
+        source: 0, // TODO this should be something like the users session key
+        target: targets,
         timestamp: event.timeStamp,
         status: status,
         position: { x: event.clientX, y: event.clientY },
