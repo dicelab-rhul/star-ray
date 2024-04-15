@@ -1,13 +1,7 @@
 import unittest
-from pprint import pprint
-
-# pylint: disable=E0401, E0611
-from star_ray.plugin.xml import (
-    QueryXPath,
-    QueryXMLHistory,
-    XMLAmbient,
-    xml_history,
-)
+from lxml import etree
+from star_ray.plugin.xml import xml_change_tracker
+from star_ray.plugin.xml import xml_history, QueryXMLHistory
 
 NAMESPACES = {"svg": "http://www.w3.org/2000/svg"}
 
@@ -25,24 +19,67 @@ XML = """
 """
 
 
-class TestXMLChangeHistory(unittest.TestCase):
+@xml_change_tracker
+class XMLStateStub:
+    def __init__(self, parser=None, **kwargs):
+        super().__init__()
+        self.parser = parser
 
-    def test_update_store(self):
+    def fromstring(self, xml):
+        return etree.fromstring(xml, parser=self.parser)
 
-        @xml_history(force_overwrite=True)
-        class MyXMLAmbient(XMLAmbient):
-            pass
 
-        ambient = MyXMLAmbient([], xml=XML, namespaces=NAMESPACES)
-        query = QueryXPath(xpath="//svg:circle", attributes={"cx": 10, "cy": 10})
-        # update cx and cy
-        ambient.__update__(query)
-        # check that history
-        query = QueryXMLHistory.new("test")
-        response = ambient.__select__(query)
-        pprint(response)
+@xml_history(use_disk=False)
+class XMLStateStub2:
+    def __init__(self, parser=None, **kwargs):
+        super().__init__()
+        self.parser = parser
 
-        # TODO assert that that response is correct!
+    def fromstring(self, xml):
+        return etree.fromstring(xml, parser=self.parser)
+
+
+class TestXMLHistory(unittest.TestCase):
+
+    def test_history(self):
+        stub = XMLStateStub2()
+        root = stub.fromstring(XML)
+
+        children = root.xpath("//svg:circle", namespaces=NAMESPACES)
+        for child in children:
+            child.set("cx", "10")
+            child.set("cy", "20")
+        # pylint: disable=E1101
+        results = stub.__select__(QueryXMLHistory(index=...)).values
+        self.assertEqual(len(results), 4)
+        for result in results:
+            response = root.xpath(result["xpath"], namespaces=NAMESPACES)
+            self.assertEqual(len(response), 1)
+            self.assertEqual(response[0].tag, "{http://www.w3.org/2000/svg}circle")
+
+
+class TestXMLChangeTracking(unittest.TestCase):
+
+    def test_change_attribute(self):
+        results = []
+
+        def _callback(event):
+            results.append(event)
+
+        stub = XMLStateStub()
+        # pylint: disable=E1101
+        stub.add_xml_change_callback(_callback)
+        root = stub.fromstring(XML)
+
+        children = root.xpath("//svg:circle", namespaces=NAMESPACES)
+        for child in children:
+            child.set("cx", "10")
+            child.set("cy", "20")
+        self.assertEqual(len(results), 4)
+        for result in results:
+            response = root.xpath(result["xpath"], namespaces=NAMESPACES)
+            self.assertEqual(len(response), 1)
+            self.assertEqual(response[0].tag, "{http://www.w3.org/2000/svg}circle")
 
 
 if __name__ == "__main__":

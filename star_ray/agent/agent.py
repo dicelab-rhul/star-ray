@@ -25,8 +25,6 @@ class Agent(ABC):
             self.add_component(actuator)
 
         if len(self.sensors) != len(sensors) or len(self.actuators) != len(actuators):
-            print(len(self.sensors), len(sensors))
-            print(len(self.actuators), len(actuators))
             raise TypeError(
                 "Components were not added to this agent upon initialisation, did you override `add_component` and forget to call super()?"
             )

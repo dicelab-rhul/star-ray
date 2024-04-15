@@ -9,7 +9,7 @@ from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from star_ray import Ambient, Environment, ActiveActuator, ActiveSensor
+from star_ray import Ambient, Environment, Actuator, Sensor
 from star_ray.agent import Agent, AgentFactory, attempt
 from star_ray.plugin.web import WebServer, WebAvatar
 
@@ -49,7 +49,7 @@ class SetPositionAction(Event):
         return SetPositionAction(*astuple(Event.new(source)), position, strength)
 
 
-class MyActuator(ActiveActuator):
+class MyActuator(Actuator):
 
     def __init__(self, strength):
         super().__init__()
@@ -64,7 +64,7 @@ class MyActuator(ActiveActuator):
         return SetPositionAction.new(self.id, position, self._strength)
 
 
-class MySensor(ActiveSensor):
+class MySensor(Sensor):
 
     def __sense__(self) -> List[Event]:
         return [Event.new(self.id)]  # just use a raw event...
@@ -82,7 +82,7 @@ class MyAgent(Agent):
         self.patience = patience
 
     def __cycle__(self):
-        for observations in self.sensors[0].get_observations():
+        for observations in self.sensors[0].iter_observations():
             if observations.values["color"] != self.color_pref:
                 # the agent is getting more annoyed!
                 self.cycles_of_annoyance += 1

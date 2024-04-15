@@ -8,7 +8,9 @@ setup(
     description="",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    packages=find_namespace_packages(include=["star_ray.plugin.xml"]),
+    packages=find_namespace_packages(
+        include=["star_ray.plugin.xml", "star_ray.plugin.xml.*"]
+    ),
     include_package_data=True,
     python_requires=">=3.10",
 )

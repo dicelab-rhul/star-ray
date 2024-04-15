@@ -10,9 +10,9 @@ from .component import (
     Sensor,
     Actuator,
     Component,
-    ActiveComponent,
-    ActiveSensor,
-    ActiveActuator,
+    Component,
+    Sensor,
+    Actuator,
 )
 
 __all__ = (
@@ -21,11 +21,8 @@ __all__ = (
     "Agent",
     "attempt",
     "OnAwake",
+    "Component",
     "Sensor",
     "Actuator",
-    "Component",
-    "ActiveComponent",
-    "ActiveSensor",
-    "ActiveActuator",
     "AgentFactory",
 )

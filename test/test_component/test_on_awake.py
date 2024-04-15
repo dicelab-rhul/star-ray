@@ -1,4 +1,4 @@
-from star_ray.agent import Agent, ActiveSensor, OnAwake
+from star_ray.agent import Agent, Sensor, OnAwake
 from types import SimpleNamespace
 
 
@@ -8,7 +8,7 @@ class MyAgent(Agent):
 
 
 @OnAwake
-class MySensor(ActiveSensor):
+class MySensor(Sensor):
     pass
 
 

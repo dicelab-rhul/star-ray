@@ -1,6 +1,9 @@
 import types
 
 
+__all__ = ("SliceType", "EllipsisType")
+
+
 class SliceType:
     """This type is used in place of the built-in `slice` type to be compatible with pydantic validation.
 

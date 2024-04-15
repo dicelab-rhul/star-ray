@@ -2,7 +2,7 @@
 from typing import List
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
-from star_ray import Ambient, Environment, ActiveActuator, ActiveSensor
+from star_ray import Ambient, Environment, Actuator, Sensor
 from star_ray.agent.component import Sensor, Actuator
 from star_ray.event import Event, Observation, ActiveObservation, ErrorObservation
 from star_ray.agent import _Agent, AgentFactory, attempt
@@ -14,14 +14,14 @@ class PingAction(Event):
     pass
 
 
-class PingActuator(ActiveActuator):
+class PingActuator(Actuator):
 
     @attempt(route_events=[str])
     def ping(self, event: str):
         return PingAction()
 
 
-class PingSensor(ActiveSensor):
+class PingSensor(Sensor):
 
     def __sense__(self) -> List[Event]:
         return [Event()]

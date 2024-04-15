@@ -35,14 +35,14 @@ class WebAvatar(RoutedActionAgent, SocketHandler):
 
     def __perceive__(self):
         for component in self.actuators:
-            for observation in component.get_observations():
+            for observation in component.iter_observations():
                 # pylint: disable = E1128
                 observation = self.handle_actuator_observation(component, observation)
                 if not observation is None:
                     self._observation_buffer.put_nowait(observation)
 
         for component in self.sensors:
-            for observation in component.get_observations():
+            for observation in component.iter_observations():
                 # pylint: disable = E1128
                 observation = self.handle_sensor_observation(component, observation)
                 if not observation is None:

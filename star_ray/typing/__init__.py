@@ -15,8 +15,8 @@ from ..agent import (
     Sensor,
     Actuator,
     Component,
-    ActiveActuator,
-    ActiveSensor,
-    ActiveComponent,
+    Actuator,
+    Sensor,
+    Component,
 )
 from ..environment import Ambient, Environment

@@ -43,7 +43,7 @@ class Ambient(ABC):
         return list(self._agents.values())
 
     def get_agents(self) -> List[_Agent]:
-        return self.agents
+        return list(self._agents.values())
 
     def kill(self):
         for agent in self._agents.values():

@@ -1,9 +1,9 @@
 # pylint: disable=E1101
-from star_ray.agent import ActiveActuator, attempt
+from star_ray.agent import Actuator, attempt
 from star_ray.event import MouseButtonEvent, KeyEvent
 
 
-class MyComponent(ActiveActuator):
+class MyComponent(Actuator):
 
     @attempt(route_events=[KeyEvent])
     def foo(self, action):

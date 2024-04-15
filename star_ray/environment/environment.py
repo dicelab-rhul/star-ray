@@ -1,6 +1,5 @@
 import asyncio
 import signal
-import time
 from .wrapper_state import _State
 from .ambient import Ambient
 from ..utils import _Future, _LOGGER
@@ -10,7 +9,7 @@ class Environment:
     def __init__(
         self, ambient: Ambient, sync: bool = True, wait: float = 1.0, *args, **kwargs
     ):
-        super().__init__(*args, **kwargs)
+        super().__init__()
         self._wait = wait
         self._ambient = _State.new(ambient)
         self._step = self._step_sync if sync else self._step_async

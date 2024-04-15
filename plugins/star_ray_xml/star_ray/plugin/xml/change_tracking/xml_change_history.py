@@ -2,27 +2,23 @@
 from datetime import datetime
 from typing import List, Dict
 from ast import literal_eval
-from lxml import etree
 from pydantic import validator, computed_field
 import types
 
 from star_ray.event import Action, Observation, ActiveObservation
-from star_ray.environment.history._h5history import _HistoryH5Sync
-from star_ray.environment.history._history import _History
+from star_ray.utils.history import _History, _HistoryH5Sync
 from star_ray.utils import SliceType, EllipsisType
-from star_ray.agent import ActiveSensor
 
-from .xml_change import XMLChangeTracker
+from .xml_change_tracking import xml_change_tracker, has_change_tracking
+from ..utils import _LOGGER
 
-
-__all__ = ("XMLHistory", "XMLHistorySensor", "QueryXMLHistory", "xml_history")
-
+__all__ = ("XMLHistory", "QueryXMLHistory", "xml_history")
 
 # TODO this should probably be a passive sensor. We dont want to constantly be polling for new updates
-class XMLHistorySensor(ActiveSensor):
+# class XMLHistorySensor(Sensor):
 
-    def __sense__(self) -> List["QueryXMLHistory"]:
-        return [QueryXMLHistory(index=...)]
+#     def __sense__(self) -> List["QueryXMLHistory"]:
+#         return [QueryXMLHistory(index=...)]
 
 
 class QueryXMLHistory(Action):
@@ -100,8 +96,8 @@ class XMLHistory:
         else:  # dont use disk.. this is probably a bad idea if there are many events expected!
             self._history = _History()
 
-    def notify(self, **kwargs: Dict[str, str]):
-        self._history.push(kwargs)
+    def notify(self, event: Dict):
+        self._history.push(event)
 
     def _new_response(
         self,
@@ -133,43 +129,75 @@ class XMLHistory:
 
 
 def xml_history(
-    use_disk=True,
+    use_disk: bool = True,
     path: str = None,
     buffer_size: int = 10000,
     flush_prop: float = 0.1,
     force_overwrite: bool = False,
 ):
-    def _history(cls):
-        original_init = cls.__init__
-
-        def __init_wrapper(self, *args, parser=None, **kwargs):
-            if parser is None:
-                parser = etree.XMLParser()
-            history = XMLHistory(
-                use_disk=use_disk,
-                path=path,
-                buffer_size=buffer_size,
-                flush_prop=flush_prop,
-                force_overwrite=force_overwrite,
+    def _history(
+        cls,
+    ):
+        if not has_change_tracking(cls):
+            raise TypeError(
+                "`xml_history` requires `change_tracking`, make use of the `@change_tracking` decorator."
             )
-            # this will update the parser to use a special tracking element.
-            # history will have its `notify` method called whenever there is
-            # a change to xml that is parsed by the given parser.
-            # data structure to store the history, this can then be retrieved by using a QueryXMLChangeHistory select event!
-            self._history = XMLChangeTracker.new(parser, history)
-            original_init(self, *args, **kwargs, parser=parser)
 
-        cls.__init__ = __init_wrapper
+        class XMLHistoryTracker(cls):
+            def __init__(self, *args, parser=None, **kwargs):
+                self._history = XMLHistory(
+                    use_disk=use_disk,
+                    path=path,
+                    buffer_size=buffer_size,
+                    flush_prop=flush_prop,
+                    force_overwrite=force_overwrite,
+                )
+                # TODO parser = XMLChangeTracker.new(self._history, parser=parser)
+                super().__init__(*args, parser=parser, **kwargs)
+                self.add_xml_change_callback(self.__notify_xml_change__)
 
-        original_select = cls.__select__
+            def __notify_xml_change__(self, event: Dict):
+                self._history.notify(event)
 
-        def __select_wrapper(self, query):
-            if not isinstance(query, QueryXMLHistory):
-                return original_select(self, query)
-            else:
-                return self._history.__select__(query)
+            def __select__(self, event, *args, **kwargs):
+                if not isinstance(event, QueryXMLHistory):
+                    return super().__select__(event, *args, **kwargs)
+                else:
+                    return self._history.__select__(event)
 
-        cls.__select__ = __select_wrapper
-        return cls
+        return XMLHistoryTracker
 
     return _history
+
+
+# original_init = cls.__init__
+
+# def __init_wrapper(self, *args, parser=None, **kwargs):
+#     if parser is None:
+#         parser = etree.XMLParser()
+#     self._history = XMLHistory(
+#         use_disk=use_disk,
+#         path=path,
+#         buffer_size=buffer_size,
+#         flush_prop=flush_prop,
+#         force_overwrite=force_overwrite,
+#     )
+#     # this will update the parser to use a special tracking element.
+#     # history will have its `notify` method called whenever there is
+#     # a change to xml that is parsed by the given parser.
+#     # data structure to store the history, this can then be retrieved by using a QueryXMLChangeHistory select event!
+#     parser = XMLChangeTracker.new(self._history, parser=parser)
+#     original_init(self, *args, **kwargs, parser=parser)
+
+# cls.__init__ = __init_wrapper
+
+# original_select = cls.__select__
+
+# def __select_wrapper(self, query):
+#     if not isinstance(query, QueryXMLHistory):
+#         return original_select(self, query)
+#     else:
+#         return self._history.__select__(query)
+
+# cls.__select__ = __select_wrapper
+# return cls

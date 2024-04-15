@@ -1,7 +1,8 @@
 # pylint: disable=[I1101,W0212,W0221, W0237]
 
+from pydantic import computed_field
 from typing import List, Dict, Any
-from star_ray.event import Observation, ActiveObservation, ErrorActiveObservation
+from star_ray.event import Observation, ActiveObservation
 from .query_xpath import QueryXPath
 
 
@@ -16,15 +17,15 @@ class QueryXML(QueryXPath):
         xpath = f"//*[@id='{element_id}']"
         super().__init__(xpath=xpath, attributes=attributes, **kwargs)
 
-    def __select__(self, *args, **kwargs) -> ActiveObservation | ErrorActiveObservation:
+    def __select__(self, *args, **kwargs) -> ActiveObservation:
         response = super().__select__(*args, **kwargs)
-        # TODO reconsider this validation step...?
         return _validate_select_response(response, self)
 
-    def __update__(self, *args, **kwargs) -> ActiveObservation | ErrorActiveObservation:
+    def __update__(self, *args, **kwargs) -> ActiveObservation:
         return super().__update__(*args, **kwargs)
 
     @property
+    @computed_field
     def element_id(self) -> str:
         """The `id` tag of the element to query - this is part of the xpath query: `//*[@id='element_id']`
 

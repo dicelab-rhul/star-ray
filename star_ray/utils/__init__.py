@@ -8,7 +8,11 @@ from ._uuid import int64_uuid, str_uuid4
 
 from ._types import SliceType, EllipsisType
 
+from .history import _History, _HistoryH5Sync
+
 __all__ = (
+    "_History",
+    "_HistoryH5Sync",
     "SliceType",
     "EllipsisType",
     "DictObservable",

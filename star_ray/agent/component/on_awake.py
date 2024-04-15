@@ -1,11 +1,11 @@
-from .active import ActiveComponent
+from .component import Component
 
 
 def OnAwake(cls):
-    """Decorator that will wrap an `ActiveComponent` class so that it only runs on its first cycle, after which it will remove itself from the agent it is attached to."""
-    if not issubclass(cls, ActiveComponent):
+    """Decorator that will wrap an `Component` class so that it only runs on its first cycle, after which it will remove itself from the agent it is attached to."""
+    if not issubclass(cls, Component):
         raise TypeError(
-            f"OnAwake decorator can only be applied to classes that derive {ActiveComponent}."
+            f"OnAwake decorator can only be applied to classes that derive {Component}."
         )
 
     class OnAwakeComponent(cls):

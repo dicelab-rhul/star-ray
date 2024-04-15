@@ -1,13 +1,15 @@
 from typing import List, Dict, Any
 from lxml import etree
 from star_ray.environment.ambient import Ambient
-from star_ray.event import ActiveObservation, ErrorActiveObservation
+from star_ray.event import ActiveObservation
 
 from .xml_state import XMLState
 from .query_xpath import QueryXPath
 
 
 class XMLAmbient(Ambient):
+    """An ambient implementation that uses XML as its underlying state representation and accepts actions derived from `QueryXPath`, to read and modify this state."""
+
     def __init__(
         self,
         agents: List[Any],
@@ -20,13 +22,8 @@ class XMLAmbient(Ambient):
             parser = etree.XMLParser()
         self.state = XMLState(xml, namespaces=namespaces, parser=parser)
 
-    def __select__(
-        self, action: QueryXPath
-    ) -> ActiveObservation | ErrorActiveObservation:
+    def __select__(self, action: QueryXPath) -> ActiveObservation:
         return self.state.__select__(action)
 
-    def __update__(
-        self, action: QueryXPath
-    ) -> ActiveObservation | ErrorActiveObservation:
-        response = self.state.__update__(action)
-        return response
+    def __update__(self, action: QueryXPath) -> ActiveObservation:
+        return self.state.__update__(action)

@@ -5,7 +5,7 @@ import html
 from lxml import etree as ET
 
 
-def _xml_to_primitive(value: str):
+def xml_to_primitive(value: str):
     """Converts a string attribute value to an appropriate Python type using ast.literal_eval."""
     try:
         # Safely evaluate value as a Python literal
@@ -15,7 +15,9 @@ def _xml_to_primitive(value: str):
         return value
 
 
-def _tostring(element: ET._Element, unescape: bool = True, with_tail: bool = False):
+def xml_element_to_string(
+    element: ET._Element, unescape: bool = True, with_tail: bool = False
+):
     result = ET.tostring(
         element,
         encoding=str,

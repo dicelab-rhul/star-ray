@@ -1,16 +1,17 @@
 # pylint: disable=[I1101,W0212,W0221, W0237]
 
+# TODO this should be made more in line with XMLState interface,
+# it seems to implement its own query functionality which is not necessary?
+
 from typing import List, Dict, Any, Tuple
 from jinja2 import UndefinedError, Environment
 import lxml.etree as ET
-from star_ray.event import (
-    ErrorActiveObservation,
-    ActiveObservation,
-)
+from star_ray.event import ActiveObservation
+
 
 from .query_xml import QueryXML, _validate_xml_element_length
-from .query_xpath import _update_element
-from ._utils import _xml_to_primitive
+from .xml_state import XMLState
+from .utils import xml_to_primitive
 
 # Create a Jinja environment instance, this will be used globally to resolve templated queries
 _ENV = Environment()
@@ -44,51 +45,46 @@ class QueryXMLTemplated(QueryXML):
 
     def __select__(
         self,
-        root: ET._Element,
-        namespaces: Dict[str, str] = None,
+        state: XMLState,
         **kwargs,
-    ) -> ActiveObservation | ErrorActiveObservation:
+    ) -> ActiveObservation:
+        # evaluate each template in attributes!
+        _, element_attributes = _get_element_and_all_attributes(
+            self, state._root, namespaces=state._namespaces
+        )
+        # render the SELECT attributes based on the current element data.
+        # This means that we can dynamically select based on data in the element we are selecting from.
+        select_attributes = _resolve_attribute_templates_select(
+            self.attributes, element_attributes
+        )
+        # select from the element using the resolved attributes
         try:
-            # evaluate each template in attributes!
-            _, element_attributes = _get_element_and_all_attributes(
-                self, root, namespaces=namespaces
+            result = {x: element_attributes[x] for x in select_attributes}
+        except KeyError as e:
+            # pylint: disable=W0707
+            raise ValueError(
+                f"Missing attribute '{e.args[0]}' on element '{self.element_id}' valid attributes include: {list(element_attributes.keys())}"
             )
-            # render the SELECT attributes based on the current element data.
-            # This means that we can dynamically select based on data in the element we are selecting from.
-            select_attributes = _resolve_attribute_templates_select(
-                self.attributes, element_attributes
-            )
-            # select from the element using the resolved attributes
-            try:
-                result = {x: element_attributes[x] for x in select_attributes}
-            except KeyError as e:
-                # pylint: disable=W0707
-                raise ValueError(
-                    f"Missing attribute '{e.args[0]}' on element '{self.element_id}' valid attributes include: {list(element_attributes.keys())}"
-                )
-        except Exception as e:  # pylint: disable=W0718
-            return ErrorActiveObservation(action_id=self, exception=e)
         return ActiveObservation(action_id=self, values=result)
 
     def __update__(
         self,
-        root: ET._Element,
-        namespaces: Dict[str, str] = None,
+        state: XMLState,
         **kwargs,
-    ) -> ActiveObservation | ErrorActiveObservation:
+    ) -> ActiveObservation:
         element, element_attributes = _get_element_and_all_attributes(
-            self, root, namespaces=namespaces
+            self, state._root, namespaces=state._namespaces
         )
-        try:
-            update_attributes = _resolve_attribute_templates_update(
-                self.attributes, element_attributes
-            )
-            # select from the element using the resolved attributes
-            _ = _update_element(update_attributes, element, namespaces=namespaces)
-        except Exception as e:  # pylint: disable=W0718
-
-            return ErrorActiveObservation(action_id=self, exception=e)
-        return ActiveObservation(action_id=self)
+        update_attributes = _resolve_attribute_templates_update(
+            self.attributes, element_attributes
+        )
+        # select from the element using the resolved attributes
+        _ = XMLState._update_element(
+            update_attributes,
+            element,
+            namespaces=state._namespaces,
+            parser=state._parser,
+        )
 
     @property
     def element_id(self) -> str:
@@ -150,7 +146,7 @@ def _get_element_and_all_attributes(
     elements = root.xpath(query.xpath, namespaces=namespaces)
     _validate_xml_element_length(query, elements)  # this should have length 1
     element = elements[0]
-    return element, {k: _xml_to_primitive(v) for k, v in element.attrib.items()}
+    return element, {k: xml_to_primitive(v) for k, v in element.attrib.items()}
 
 
 def _sanitize_attribute_name(name):

@@ -1,13 +1,19 @@
+from .query_xpath import QueryXPath
 from .xml_state import XMLState
 from .xml_ambient import XMLAmbient
 from .query_xml import QueryXML
-from .query_xpath import QueryXPath
 from .query_xml_templated import QueryXMLTemplated
-from .xml_change_history import (
-    QueryXMLHistory,
-    XMLHistorySensor,
-    XMLHistory,
+from .change_tracking import (
+    xml_change_tracker,
+    XMLChangeObservation,
+    SubscribeXMLElementChange,
+    UnsubscribeXMLElementChange,
+    SubscribeXMLChange,
+    UnsubscribeXMLChange,
+    xml_change_publisher,
     xml_history,
+    XMLHistory,
+    QueryXMLHistory,
 )
 
 __all__ = (
@@ -16,8 +22,14 @@ __all__ = (
     "QueryXML",
     "QueryXPath",
     "QueryXMLTemplated",
-    "QueryXMLHistory",
-    "XMLHistory",
-    "XMLHistorySensor",
+    "xml_change_tracker",
+    "xml_change_publisher",
+    "XMLChangeObservation",
+    "SubscribeXMLElementChange",
+    "UnsubscribeXMLElementChange",
+    "SubscribeXMLChange",
+    "UnsubscribeXMLChange",
     "xml_history",
+    "XMLHistory",
+    "QueryXMLHistory",
 )

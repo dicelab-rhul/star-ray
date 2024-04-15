@@ -3,7 +3,7 @@ from importlib.resources import files
 from typing import List
 from dataclasses import dataclass, astuple
 from fastapi import Request
-from star_ray import Ambient, Environment, ActiveActuator, ActiveSensor
+from star_ray import Ambient, Environment, Actuator, Sensor
 
 from star_ray.agent import AgentFactory
 from star_ray.plugin.web import WebServer, WebAvatar

@@ -1,4 +1,4 @@
-from star_ray import Environment, Ambient, Agent, ActiveActuator, ActiveSensor, Event
+from star_ray import Environment, Ambient, Agent, Actuator, Sensor, Event
 
 
 class MyAmbient(Ambient):
@@ -22,13 +22,13 @@ class SenseAction(Event):
     pass
 
 
-class MyActuator(ActiveActuator):
+class MyActuator(Actuator):
 
     def __attempt__(self):
         return [MoveAction.new(self.id)]
 
 
-class MySensor(ActiveSensor):
+class MySensor(Sensor):
 
     def __sense__(self):
         return [SenseAction.new(self.id)]
