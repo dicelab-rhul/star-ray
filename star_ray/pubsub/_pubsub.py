@@ -44,6 +44,12 @@ class _SubscriberLocal(Subscriber):
     def __hash__(self):
         return hash(self._handle)
 
+    def __repr__(self) -> str:
+        return f"Subscriber@local({repr(self._handle())})"
+
+    def __str__(self):
+        return repr(self)
+
 
 class _SubscriberRemote(Subscriber):
 
@@ -60,6 +66,12 @@ class _SubscriberRemote(Subscriber):
 
     def __hash__(self):
         return hash(self._handle)
+
+    def __repr__(self) -> str:
+        return f"Subscriber@remote({repr(self._handle)})"
+
+    def __str__(self):
+        return str(self._handle)
 
 
 class Publisher(ABC):

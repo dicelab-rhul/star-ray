@@ -1,0 +1,14 @@
+{
+    "debug": {
+        "type": "boolean",
+        "default": false
+    },
+    "disable_arrow_scroll": {
+        "type": "boolean",
+        "default": false
+    },
+    "send_key_hold": {
+        "type": "boolean",
+        "default": false
+    }
+}

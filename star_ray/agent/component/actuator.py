@@ -17,7 +17,7 @@ class Actuator(Component):
         # set the source of these actions to this actuator
         self._set_source(self._actions)
         # attempt the sense act and get the resulting observations
-        observations = state.update(self._actions)
+        observations = state.__update__(self._actions)
         # preprocess the observations ready to be received by the agent
         self._observations.push_all(self.__transduce__(observations))
         # clear sense actions ready for the next execution cycle

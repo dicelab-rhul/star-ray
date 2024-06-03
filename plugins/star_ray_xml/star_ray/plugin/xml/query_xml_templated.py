@@ -25,8 +25,8 @@ class QueryXMLTemplated(QueryXML):
 
     def __init__(
         self,
-        element_id: str = None,
-        attributes: str | List[str] | Dict[str, Any] = None,
+        element_id: str,
+        attributes: str | List[str] | Dict[str, Any],
         **kwargs,
     ):
         super().__init__(element_id=element_id, attributes=attributes, **kwargs)

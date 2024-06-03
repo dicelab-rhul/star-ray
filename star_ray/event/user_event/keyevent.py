@@ -13,12 +13,12 @@ class KeyEvent(Event):
         timestamp ([float]): The timestamp (in seconds since UNIX epoch) when the event instance is created.
         source ([int]): A unique identifier for the source of this event.
         key ([str]): The string representation of the key.
-        keyCode ([int]): The key code of the keyboard event.
+        keycode ([int]): The key code of the keyboard event.
         status ([int]): The status of the key event (UP = 0, DOWN = 1, HOLD = 2).
     """
 
     key: str
-    keyCode: int
+    keycode: int
     status: int
 
     UP: ClassVar[int] = 0

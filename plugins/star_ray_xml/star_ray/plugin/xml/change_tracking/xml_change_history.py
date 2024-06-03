@@ -154,10 +154,10 @@ def xml_history(
                 )
                 # TODO parser = XMLChangeTracker.new(self._history, parser=parser)
                 super().__init__(*args, parser=parser, **kwargs)
-                self.add_xml_change_callback(self.__notify_xml_change__)
 
-            def __notify_xml_change__(self, event: Dict):
+            def notify(self, event: Dict):
                 self._history.notify(event)
+                super().notify(event)
 
             def __select__(self, event, *args, **kwargs):
                 if not isinstance(event, QueryXMLHistory):

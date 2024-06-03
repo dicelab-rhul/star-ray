@@ -1,10 +1,10 @@
-""" Module defining the [ExitEvent] class. [ExitEvent] is used to signal that the program should close."""
+""" Module defining the [ExitEvent] class. [ExitEvent] is used to signal that the ui (or program) should close."""
 
 from ..event import Event
 
 
 class ExitEvent(Event):
-    """An event class representing a program exit event.
+    """An event class representing a ui exit.
 
     Attributes:
         id ([int]): A unique identifier for the event.

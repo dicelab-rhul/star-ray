@@ -6,6 +6,7 @@ from .query_xml_templated import QueryXMLTemplated
 from .change_tracking import (
     xml_change_tracker,
     XMLChangeObservation,
+    XMLElementChangeObservation,
     SubscribeXMLElementChange,
     UnsubscribeXMLElementChange,
     SubscribeXMLChange,
@@ -25,6 +26,7 @@ __all__ = (
     "xml_change_tracker",
     "xml_change_publisher",
     "XMLChangeObservation",
+    "XMLElementChangeObservation",
     "SubscribeXMLElementChange",
     "UnsubscribeXMLElementChange",
     "SubscribeXMLChange",

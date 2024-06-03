@@ -100,7 +100,7 @@ class XMLState:
 
     @staticmethod
     def _update_element(
-        attributes: Dict[str, Any],
+        attributes: Dict[str, Any] | str,
         element: ET.ElementBase,
         namespaces: Dict[str, str] = None,
         parser: ET.XMLParser = None,

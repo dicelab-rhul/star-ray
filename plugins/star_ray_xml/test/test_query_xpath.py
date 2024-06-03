@@ -122,6 +122,25 @@ class TestXMLStateXPath(unittest.TestCase):
             ],
         )
 
+    def test_insert_element(self):
+        svg_code = """<svg id="root" xmlns="http://www.w3.org/2000/svg"> <g id="mygroup"> </g> <g id="myothergroup"/></svg>"""
+        app = XMLState(svg_code, namespaces=NAMESPACES)
+        query = QueryXPath(
+            xpath="""//svg:g[@id="mygroup"]/text()""",
+            attributes=[],
+        )
+        result = app.__select__(query)
+        print(result)
+        # query = QueryXPath(xpath="//svg:g", attributes=[])
+        # result = app.__select__(query)
+        # self.assertListEqual(
+        #     result.values,
+        #     [
+        #         '<g xmlns="http://www.w3.org/2000/svg" id="mynewgroup"> Some new text! </g>',
+        #         '<g xmlns="http://www.w3.org/2000/svg" id="myothergroup"> Some other text! </g>',
+        #     ],
+        # )
+
 
 if __name__ == "__main__":
     unittest.main()

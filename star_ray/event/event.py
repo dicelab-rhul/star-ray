@@ -20,3 +20,6 @@ class Event(BaseModel):
     id: int = Field(default_factory=EVENT_UUID_FUNC)
     timestamp: float = Field(default_factory=EVENT_TIMESTAMP_FUNC)
     source: int | None = Field(default_factory=lambda: None)
+
+    class Config:
+        validate_assignment = True

@@ -1,7 +1,8 @@
 from typing import List, Dict, Any
 from lxml import etree
 from star_ray.environment.ambient import Ambient
-from star_ray.event import ActiveObservation
+from star_ray.event import ActiveObservation, ErrorActiveObservation
+from star_ray.pubsub import Subscribe, Unsubscribe
 
 from .xml_state import XMLState
 from .query_xpath import QueryXPath
@@ -27,3 +28,8 @@ class XMLAmbient(Ambient):
 
     def __update__(self, action: QueryXPath) -> ActiveObservation:
         return self.state.__update__(action)
+
+    def __subscribe__(
+        self, action: Subscribe | Unsubscribe
+    ) -> ActiveObservation | ErrorActiveObservation:
+        pass

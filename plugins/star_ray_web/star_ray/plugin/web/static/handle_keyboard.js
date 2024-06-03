@@ -42,9 +42,3 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("keyup", handleKeyUp);
 });
-
-
-document.addEventListener('keydown', function (event) {
-    // Check if the pressed key is an arrow key
-
-});

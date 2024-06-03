@@ -6,7 +6,13 @@ from ast import (
     Starred,
     Dict,
     BinOp,
+    UnaryOp,
+    Subscript,
+    UAdd,
+    USub,
     Expression,
+    Mod,
+    FloorDiv,
     Add,
     Sub,
     Mult,
@@ -52,13 +58,22 @@ def literal_eval_with_ops(node_or_string):
             return result
         elif isinstance(node, Set):
             return set(map(_convert, node.elts))
-        elif (
-            isinstance(node, Call)
-            and isinstance(node.func, Name)
-            and node.func.id == "set"
-            and node.args == node.keywords == []
-        ):
-            return set()
+        elif isinstance(node, Call):
+            # Valid function calls and their handlers
+            valid_calls = {
+                "min": lambda args: min(_convert(arg) for arg in args),
+                "max": lambda args: max(_convert(arg) for arg in args),
+                "set": lambda args: set(_convert(arg) for arg in args),
+            }
+            if isinstance(node.func, Name) and node.func.id in valid_calls:
+                # Check if the function name is valid
+                if node.args != node.keywords == []:
+                    # Ensure no additional arguments or keyword arguments
+                    return valid_calls[node.func.id](node.args)
+                else:
+                    _raise_malformed_node(node)
+            else:
+                _raise_malformed_node(node)
         elif isinstance(node, Dict):
             if len(node.keys) != len(node.values):
                 _raise_malformed_node(node)
@@ -74,8 +89,25 @@ def literal_eval_with_ops(node_or_string):
                 return left * right
             elif isinstance(node.op, Div):
                 return left / right
+            elif isinstance(node.op, Mod):
+                return left % right
+            elif isinstance(node.op, FloorDiv):
+                return left // right
             else:
                 _raise_malformed_node(node)
+        elif isinstance(node, UnaryOp):  # Handle unary operations
+            operand = _convert(node.operand)
+            # TODO check numeric?
+            if isinstance(node.op, UAdd):
+                return +operand
+            elif isinstance(node.op, USub):
+                return -operand
+            else:
+                _raise_malformed_node(node)
+        elif isinstance(node, Subscript):  # Handle indexing operations
+            value = _convert(node.value)
+            index = _convert(node.slice)
+            return value[index]
         else:
             _raise_malformed_node(node)
 

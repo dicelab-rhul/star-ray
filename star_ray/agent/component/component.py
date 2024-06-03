@@ -62,6 +62,13 @@ class Component(metaclass=ComponentMeta):
     def on_remove(self, agent: Agent) -> None:
         self._agent = None
 
+    def __str__(self):
+        return f"{self.__class__.__name__}({self._id})"
+
+    def __repr__(self):
+        # TODO perhaps include information about the agent this component is attached to ?
+        return str(self)
+
     @property
     def id(self):
         """Unique identifier for this [`Component`].
@@ -86,8 +93,16 @@ class Component(metaclass=ComponentMeta):
     def __transduce__(self, events: List[Observation]) -> List[Observation]:
         return events
 
+    def __initialise__(self, state: _State) -> None:
+        """Method called when the enviroment is read, this can be used to set up the component.
+        For example, a sensor might subscribe to receive certain events here.
+
+        Args:
+            state (_State): state of the environment
+        """
+
     @abstractmethod
-    def __query__(self, state: _State):
+    def __query__(self, state: _State) -> None:
         """Calling this method will cause this [`Component`] to query the state of the environment.
         This should not be called manually, it will be called by the environment execution scheduler.
         """

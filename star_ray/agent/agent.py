@@ -30,17 +30,17 @@ class Agent(ABC):
             )
 
     @property
-    def sensors(self) -> Set:
+    def sensors(self) -> Set[Sensor]:
         return set(self._sensors)
 
-    def get_sensors(self) -> Set:
+    def get_sensors(self) -> Set[Sensor]:
         return set(self._sensors)
 
     @property
-    def actuators(self) -> Set:
+    def actuators(self) -> Set[Actuator]:
         return set(self._actuators)
 
-    def get_actuators(self) -> Set:
+    def get_actuators(self) -> Set[Actuator]:
         return set(self._actuators)
 
     @property
@@ -49,6 +49,10 @@ class Agent(ABC):
 
     def get_id(self) -> int:
         return self._id
+
+    def __initialise__(self, state):
+        _ = [sensor.__initialise__(state) for sensor in self.sensors]
+        _ = [actuator.__initialise__(state) for actuator in self.actuators]
 
     # TODO type hints _State
     def __sense__(self, state, *args, **kwargs):

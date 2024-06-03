@@ -10,11 +10,11 @@ class QueryXML(QueryXPath):
 
     def __init__(
         self,
-        element_id: str = None,
-        attributes: str | List[str] | Dict[str, Any] = None,
+        element_id: str,
+        attributes: str | List[str] | Dict[str, Any],
         **kwargs,
     ):
-        xpath = f"//*[@id='{element_id}']"
+        xpath = QueryXML.new_xpath(element_id)
         super().__init__(xpath=xpath, attributes=attributes, **kwargs)
 
     def __select__(self, *args, **kwargs) -> ActiveObservation:
@@ -23,6 +23,10 @@ class QueryXML(QueryXPath):
 
     def __update__(self, *args, **kwargs) -> ActiveObservation:
         return super().__update__(*args, **kwargs)
+
+    @staticmethod
+    def new_xpath(element_id: str):
+        return f"//*[@id='{element_id}']"
 
     @property
     @computed_field

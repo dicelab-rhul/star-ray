@@ -35,5 +35,7 @@ class MyRemoteSubscriber(Subscriber):
 
 sub2 = MyRemoteSubscriber.remote()
 action = ray.get(sub2.get_action.remote())
+print(action)
+
 publisher.subscribe(action.topic, action.subscriber)
 publisher.notify_subscribers(Event())

@@ -17,7 +17,7 @@ __all__ = ("_Agent",)
 class _Agent(ABC):
     """TODO"""
 
-    def __init__(self, agent):
+    def __init__(self, agent: Any):
         super().__init__()
         self._inner = agent
 
@@ -49,19 +49,23 @@ class _Agent(ABC):
             raise TypeError(f"Invalid type for agent {type(agent)}.")
 
     @abstractmethod
-    def sense(self, state: _State) -> _Future:
+    def __initialise__(self, state: _State) -> _Future:
         pass
 
     @abstractmethod
-    def cycle(self) -> _Future:
+    def __sense__(self, state: _State) -> _Future:
         pass
 
     @abstractmethod
-    def execute(self, state: _State) -> _Future:
+    def __cycle__(self) -> _Future:
         pass
 
     @abstractmethod
-    def kill(self) -> _Future:
+    def __execute__(self, state: _State) -> _Future:
+        pass
+
+    @abstractmethod
+    def __kill__(self) -> _Future:
         pass
 
     @abstractmethod
@@ -72,69 +76,65 @@ class _Agent(ABC):
     def get_inner(self):
         pass
 
-    @property
-    @abstractmethod
-    def id(self):
-        pass
-
 
 class _AgentWrapperRemote(_Agent):
 
-    def sense(self, state: _State) -> _Future:
+    def __initialise__(self, state: _State) -> _Future:
+        return _Future.call_remote(self._inner.__initialise__, state)
+
+    def __sense__(self, state: _State) -> _Future:
         return _Future.call_remote(self._inner.__sense__, state)
 
-    def cycle(self) -> _Future:
+    def __cycle__(self) -> _Future:
         return _Future.call_remote(self._inner.__cycle__)
 
-    def execute(self, state: _State) -> _Future:
+    def __execute__(self, state: _State) -> _Future:
         return _Future.call_remote(self._inner.__execute__, state)
 
-    @property
-    def id(self):
-        return ray.get(self._inner.get_id.remote())
-
-    def kill(self):
+    def __kill__(self):
         return ray.kill(self._inner, no_restart=True)
 
     def get_inner(self):
         return self._inner
 
     def get_id(self):
-        return self.id
+        return ray.get(self._inner.get_id.remote())
 
 
 class _AgentWrapperLocal(_Agent):
 
-    def sense(self, state: _State) -> _Future:
+    def __initialise__(self, state: _State) -> _Future:
+        return _Future.call_sync(self._inner.__initialise__, state)
+
+    def __sense__(self, state: _State) -> _Future:
         return _Future.call_sync(self._inner.__sense__, state)
 
-    def cycle(self) -> _Future:
+    def __cycle__(self) -> _Future:
         return _Future.call_sync(self._inner.__cycle__)
 
-    def execute(self, state: _State) -> _Future:
+    def __execute__(self, state: _State) -> _Future:
         return _Future.call_sync(self._inner.__execute__, state)
 
-    @property
-    def id(self):
-        return self._inner.id
-
-    def kill(self):
+    def __kill__(self):
         pass
 
     def get_inner(self):
         return self._inner
 
     def get_id(self):
-        return self.id
+        return self._inner.id
 
 
 class _AgentWrapperLocalAsync(_AgentWrapperLocal):
 
-    def sense(self, state: _State) -> _Future:
+    def __initialise__(self, state: _State) -> _Future:
+        return _Future.call_async(self._inner.__initialise__, state)
+
+    def __sense__(self, state: _State) -> _Future:
         return _Future.call_async(self._inner.__sense__, state)
 
-    def cycle(self) -> _Future:
+    def __cycle__(self) -> _Future:
         return _Future.call_async(self._inner.__cycle__)
 
-    def execute(self, state: _State) -> _Future:
+    def __execute__(self, state: _State) -> _Future:
         return _Future.call_async(self._inner.__execute__, state)

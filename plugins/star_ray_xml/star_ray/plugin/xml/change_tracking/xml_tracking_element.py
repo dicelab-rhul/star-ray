@@ -1,6 +1,7 @@
 import time
 import re
 from lxml import etree
+from ast import literal_eval
 
 
 class _TrackingElement(etree.ElementBase):
@@ -8,6 +9,13 @@ class _TrackingElement(etree.ElementBase):
     @property
     def positional_xpath(self):
         return True
+
+    @staticmethod
+    def _literal_eval(v):
+        try:
+            return literal_eval(v)
+        except:
+            return v
 
     def notify(self, **kwargs):
         # this could be an @abstractmethod, but I am not sure how lxml will handle this,
@@ -25,7 +33,8 @@ class _TrackingElement(etree.ElementBase):
             timestamp=time.time(),
             element_id=element_id,
             xpath=xpath,
-            attributes={key: value},
+            # value will always be a string, here, we prefer it to be a python type (int, float, etc) downstream
+            attributes={key: _TrackingElement._literal_eval(value)},
         )
 
     def replace(self, old_element, new_element):

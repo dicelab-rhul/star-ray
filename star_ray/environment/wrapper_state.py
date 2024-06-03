@@ -1,14 +1,14 @@
 from __future__ import annotations
 from typing import Union, List, TYPE_CHECKING, Any
 from abc import ABC, abstractmethod
-import asyncio
 import ray
 from ray.actor import ActorHandle
-from ..event import Event
 from .ambient import Ambient
 
 if TYPE_CHECKING:
     from ..agent.wrapper_agent import _Agent
+    from ..pubsub import Subscribe, Unsubscribe
+    from ..event import Event
 
 __all__ = ("_State",)
 
@@ -24,16 +24,25 @@ class _State(ABC):
         else:
             raise TypeError(f"Invalid ambient type {type(ambient)}.")
 
+    @property
     @abstractmethod
-    async def initialise(self):
+    def is_alive(self):
         pass
 
     @abstractmethod
-    def update(self, actions: List[Event]) -> List[Any]:
+    async def __initialise__(self):
         pass
 
     @abstractmethod
-    def select(self, actions: List[Event]) -> List[Any]:
+    def __subscribe__(self, actions: List[Event]) -> List[Any]:
+        pass
+
+    @abstractmethod
+    def __update__(self, actions: List[Event]) -> List[Any]:
+        pass
+
+    @abstractmethod
+    def __select__(self, actions: List[Event]) -> List[Any]:
         pass
 
     @abstractmethod
@@ -45,14 +54,21 @@ class _StateWrapperRemote(_State):
     def __init__(self, ambient: ActorHandle):
         self._inner = ambient
 
-    async def initialise(self):
-        # initialise the remote ambient, wait for the call to complete so that we can be sure everything is ready.
-        return await self._inner.initialise.remote()
+    @property
+    def is_alive(self):
+        return self._inner.get_is_alive.remote()
 
-    def update(self, actions: List[Event]) -> List[Any]:
+    async def __initialise__(self):
+        # initialise the remote ambient, wait for the call to complete so that we can be sure everything is ready.
+        return await self._inner.__initialise__.remote()
+
+    def __subscribe__(self, actions: List[Subscribe | Unsubscribe]) -> List[Any]:
+        return [self._inner.__subscribe__.remote(query) for query in actions]
+
+    def __update__(self, actions: List[Event]) -> List[Any]:
         return [self._inner.__update__.remote(query) for query in actions]
 
-    def select(self, actions: List[Event]) -> List[Any]:
+    def __select__(self, actions: List[Event]) -> List[Any]:
         return [self._inner.__select__.remote(query) for query in actions]
 
     def get_agents(self) -> List[_Agent]:
@@ -64,13 +80,20 @@ class _StateWrapper(_State):
     def __init__(self, ambient: Ambient):
         self._inner = ambient
 
-    async def initialise(self):
-        return await self._inner.initialise()
+    @property
+    def is_alive(self):
+        return self._inner.get_is_alive()
 
-    def update(self, actions: List[Event]) -> List[Any]:
+    async def __initialise__(self):
+        return await self._inner.__initialise__()
+
+    def __subscribe__(self, actions: List[Subscribe | Unsubscribe]) -> List[Any]:
+        return [self._inner.__subscribe__(query) for query in actions]
+
+    def __update__(self, actions: List[Event]) -> List[Any]:
         return [self._inner.__update__(query) for query in actions]
 
-    def select(self, actions: List[Event]) -> List[Any]:
+    def __select__(self, actions: List[Event]) -> List[Any]:
         return [self._inner.__select__(query) for query in actions]
 
     def get_agents(self) -> List[_Agent]:

@@ -1,0 +1,10 @@
+{
+    "debug": {
+        "type": "boolean",
+        "default": false
+    },
+    "disable_context_menu": {
+        "type": "boolean",
+        "default": true
+    }
+}

@@ -1,5 +1,6 @@
 from collections import defaultdict
 from types import MethodType
+from typing import List
 
 from .agent import Agent
 from .component import Actuator, Component
@@ -42,7 +43,7 @@ class RoutedActionAgent(Agent):
                 attempt(action)
 
     @staticmethod
-    def get_route_events(*actuators):
+    def get_route_events(*actuators: List[Actuator]):
         for actuator in actuators:
             for attempt in actuator.__class__.__attemptmethods__:
                 route_events = attempt.route_events

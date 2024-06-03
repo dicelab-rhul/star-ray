@@ -28,7 +28,7 @@ class ErrorObservation(Observation):
     def __init__(self, exception: Exception = None, **kwargs):
         assert exception
         exception_type = exception.__class__.__name__
-        traceback_message = "\n".join(
+        traceback_message = "".join(
             traceback.format_exception(
                 type(exception), value=exception, tb=exception.__traceback__
             )
@@ -40,6 +40,13 @@ class ErrorObservation(Observation):
     def __str__(self):
         return f"ErrorResponse(\nsource={self.source},\n{self.traceback_message}\n)"
 
+    def exception(self):
+        return _ObservationError(f"\n{self.exception_type}:\n{self.traceback_message}")
+
 
 class ErrorActiveObservation(ActiveObservation, ErrorObservation):
+    pass
+
+
+class _ObservationError(Exception):
     pass

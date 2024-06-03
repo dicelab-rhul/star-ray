@@ -32,6 +32,7 @@ class MouseButtonEvent(Event):
     CLICK: ClassVar[int] = 2
 
     @validator("position", pre=True, always=True)
+    @classmethod
     def _validate_position(cls, value: tuple | dict | list):
         if isinstance(value, dict):
             return (value["x"], value["y"])
@@ -39,6 +40,7 @@ class MouseButtonEvent(Event):
             return tuple(value)
 
     @validator("status", pre=True, always=True)
+    @classmethod
     def _validate_status(cls, value: str | int) -> int:  # pylint: disable=E0213
         if isinstance(value, str):
             if "release" in value or value == "up":

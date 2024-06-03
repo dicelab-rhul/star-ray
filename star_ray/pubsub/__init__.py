@@ -1,5 +1,12 @@
 from ._action import Subscribe, Unsubscribe
 from ._pubsub import Subscriber, Publisher
-from ._default_publisher import TypeTopicPublisher
+from ._default_publisher import TopicPublisher, EventPublisher
 
-__all__ = ("Subscribe", "Unsubscribe", "Subscriber", "Publisher", "TypeTopicPublisher")
+__all__ = (
+    "Subscribe",
+    "Unsubscribe",
+    "Subscriber",
+    "Publisher",
+    "TopicPublisher",
+    "EventPublisher",
+)
