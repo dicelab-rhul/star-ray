@@ -19,7 +19,7 @@ setup(
         "deepmerge",
         "cerberus",
     ],
-    extra_requires={
+    extras_require={
         "xml": ["star_ray_xml"],
         "pygame": ["star_ray_pygame"],
         # "web" : ["star_ray_web"] # not currently available...
