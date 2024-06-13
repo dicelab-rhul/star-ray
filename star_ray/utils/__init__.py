@@ -8,7 +8,7 @@ from ._uuid import int64_uuid, str_uuid4
 
 from ._types import SliceType, EllipsisType
 
-from .history import _History, _HistoryH5Sync
+# from .history import _History, _HistoryH5Sync
 
 from ._templating import ValidatedTemplates, ValidatedEnvironment, TemplateLoader
 
@@ -16,8 +16,6 @@ __all__ = (
     "ValidatedTemplates",
     "ValidatedEnvironment",
     "TemplateLoader",
-    "_History",
-    "_HistoryH5Sync",
     "SliceType",
     "EllipsisType",
     "DictObservable",

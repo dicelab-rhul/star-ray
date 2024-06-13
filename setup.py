@@ -1,7 +1,5 @@
 from setuptools import setup, find_packages
 
-from setuptools import setup, find_packages
-
 setup(
     name="star_ray",
     version="0.0.1",
@@ -11,11 +9,15 @@ setup(
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     packages=find_packages(),
-    url="https://github.com/BenedictWilkins/star_ray",
+    url="https://github.com/dicelab-rhul/star_ray",
     install_requires=[
-        "ray",
+        "ray==2.9.1",
+        "starlette<=0.34.0",
         "jinja2",
+        "starlette",
         "pydantic",
+        "deepmerge",
+        "cerberus",
     ],
     extra_requires={
         "xml": ["star_ray_xml"],
