@@ -65,15 +65,25 @@ class _Agent(ABC):
         pass
 
     @abstractmethod
-    def __kill__(self) -> _Future:
+    def __terminate__(self) -> _Future:
         pass
 
     @abstractmethod
-    def get_id(self):
+    def get_id(self) -> Any:
         pass
 
     @abstractmethod
     def get_inner(self):
+        pass
+
+    @property
+    @abstractmethod
+    def is_alive(self) -> bool:
+        pass
+
+    @property
+    @abstractmethod
+    def id(self) -> Any:
         pass
 
 
@@ -91,13 +101,23 @@ class _AgentWrapperRemote(_Agent):
     def __execute__(self, state: _State) -> _Future:
         return _Future.call_remote(self._inner.__execute__, state)
 
-    def __kill__(self):
-        return ray.kill(self._inner, no_restart=True)
+    def __terminate__(self) -> _Future:
+        return _Future.call_remote(self._inner.__terminate__)
+        # TODO?
+        # ray.kill(self._inner, no_restart=True)
 
     def get_inner(self):
         return self._inner
 
     def get_id(self):
+        return self.id
+
+    @property
+    def is_alive(self) -> bool:
+        return ray.get(self._inner.get_is_alive.remote())
+
+    @property
+    def id(self) -> Any:
         return ray.get(self._inner.get_id.remote())
 
 
@@ -115,13 +135,21 @@ class _AgentWrapperLocal(_Agent):
     def __execute__(self, state: _State) -> _Future:
         return _Future.call_sync(self._inner.__execute__, state)
 
-    def __kill__(self):
-        pass
+    def __terminate__(self):
+        return _Future.call_sync(self._inner.__terminate__)
 
     def get_inner(self):
         return self._inner
 
     def get_id(self):
+        return self._inner.id
+
+    @property
+    def is_alive(self) -> bool:
+        return self._inner.is_alive
+
+    @property
+    def id(self) -> Any:
         return self._inner.id
 
 
@@ -138,3 +166,6 @@ class _AgentWrapperLocalAsync(_AgentWrapperLocal):
 
     def __execute__(self, state: _State) -> _Future:
         return _Future.call_async(self._inner.__execute__, state)
+
+    def __terminate__(self):
+        return _Future.call_async(self._inner.__terminate__)

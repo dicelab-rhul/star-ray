@@ -1,35 +1,32 @@
 from setuptools import setup, find_packages
 
+from setuptools import setup, find_packages
+
 setup(
     name="star_ray",
-    version="2.0.1",
+    version="0.0.1",
     author="Benedict Wilkins",
     author_email="benrjw@gmail.com",
-    description="",
+    description="A multi-agent simulation platform based on the distributed computing platform `ray`.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     packages=find_packages(),
+    url="https://github.com/BenedictWilkins/star_ray",
     install_requires=[
-        "ray[serve]==2.9.1",
-        "starlette<=0.34.0",  # this version is required to prevent an error in ray serve (it should be fixed in ray 2.10)
-        "uuid",
-        "cairosvg",
+        "ray",
         "jinja2",
-        "lxml",
-        "numpy",
-        "numexpr",
-        "omegaconf",
         "pydantic",
-        "h5py",
-        # "pylint",
     ],
-    extras_require={
-        # "web": ["./plugins/web"], # TODO the relative path doesnt seem to work...
+    extra_requires={
+        "xml": ["star_ray_xml"],
+        "pygame": ["star_ray_pygame"],
+        # "web" : ["star_ray_web"] # not currently available...
     },
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-    ],
     python_requires=">=3.10",
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Programming Language :: Python :: 3.10",
+    ],
 )

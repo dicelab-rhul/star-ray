@@ -1,14 +1,22 @@
 from .keyevent import KeyEvent
 from .mouseevent import MouseButtonEvent, MouseMotionEvent
-from .exitevent import ExitEvent
-from .visibilityevent import VisibilityEvent
 from .joystickevent import JoyStickEvent
+from .windowevent import (
+    WindowFocusEvent,
+    WindowMoveEvent,
+    WindowResizeEvent,
+    WindowCloseEvent,
+    WindowOpenEvent,
+)
 
 __all__ = (
     "KeyEvent",
     "JoyStickEvent",
     "MouseButtonEvent",
     "MouseMotionEvent",
-    "ExitEvent",
-    "VisibilityEvent",
+    "WindowFocusEvent",
+    "WindowMoveEvent",
+    "WindowResizeEvent",
+    "WindowCloseEvent",
+    "WindowOpenEvent",
 )

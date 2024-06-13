@@ -62,7 +62,7 @@ class Agent(ABC):
     def __execute__(self, state, *args, **kwargs):
         _ = [actuator.__query__(state) for actuator in self.actuators]
 
-    def add_component(self, component: Component):
+    def add_component(self, component: Component) -> Component:
         if isinstance(component, Sensor):
             self._sensors.add(component)
         elif isinstance(component, Actuator):
@@ -70,6 +70,7 @@ class Agent(ABC):
         else:
             raise TypeError(f"Unsupported component type: {type(component)}")
         component.on_add(self)
+        return component
 
     def remove_component(self, component: Component):
         if isinstance(component, Sensor):
@@ -84,9 +85,9 @@ class Agent(ABC):
     def __cycle__(self):
         pass
 
-    # TODO remove in favour of __kill__
+    # TODO remove in favour of __terminate__
     def kill(self):
-        self.__kill__()
+        self.__terminate__()
 
-    def __kill__(self):
+    def __terminate__(self):
         pass

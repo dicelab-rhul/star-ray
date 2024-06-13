@@ -1,6 +1,0 @@
-{
-    "message": {
-        "type": "string",
-        "default": "default message"
-    }
-}

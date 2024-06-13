@@ -1,4 +1,4 @@
-""" Module defining the [VisibilityEvent] class. """
+""" DEPRECATED Module defining the [VisibilityEvent] class.  """
 
 from typing import ClassVar
 from pydantic import validator

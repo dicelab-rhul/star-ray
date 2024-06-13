@@ -15,6 +15,7 @@ class _Future:
     """
 
     def __init__(self, future: Union[asyncio.Future, ray.ObjectRef]):
+        super().__init__()
         self._future = future
 
     @staticmethod

@@ -1,6 +1,6 @@
 from collections import defaultdict
 from types import MethodType
-from typing import List
+from typing import List, Type, Any
 
 from .agent import Agent
 from .component import Actuator, Component
@@ -33,7 +33,7 @@ class RoutedActionAgent(Agent):
 
     def __attempt__(self, actions):
         for action in actions:
-            cls_name = _fully_qualified_name(action.__class__)
+            cls_name = RoutedActionAgent.get_fully_qualified_name(action.__class__)
             attempts = self._action_router_map.get(cls_name, None)
             if attempts is None:
                 raise ValueError(
@@ -49,10 +49,10 @@ class RoutedActionAgent(Agent):
                 route_events = attempt.route_events
                 if route_events:
                     for event_cls in route_events:
-                        yield _fully_qualified_name(event_cls), MethodType(
-                            attempt, actuator
-                        )
+                        yield RoutedActionAgent.get_fully_qualified_name(
+                            event_cls
+                        ), MethodType(attempt, actuator)
 
-
-def _fully_qualified_name(cls):
-    return cls.__module__ + "." + cls.__qualname__
+    @staticmethod
+    def get_fully_qualified_name(cls: Type[Any]):
+        return cls.__module__ + "." + cls.__qualname__

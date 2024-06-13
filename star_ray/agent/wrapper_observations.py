@@ -54,10 +54,10 @@ class _ObservationsRemote(_Observations):
         self._objects = deque(objects)
 
     def push(self, item: ObjectRef) -> None:
-        self._objects.appendleft(item)
+        self._objects.append(item)
 
     def push_all(self, items: List[Any]) -> None:
-        self._objects.extendleft(items)
+        self._objects.extend(items)
 
     def pop(self) -> Event:
         return ray.get(self._objects.popleft())
@@ -88,10 +88,10 @@ class _ObservationsLocal(_Observations):
         self._objects = deque(objects)
 
     def push_all(self, items: List[Any]) -> None:
-        self._objects.extendleft(items)
+        self._objects.extend(items)
 
     def push(self, item: ObjectRef) -> None:
-        self._objects.appendleft(item)
+        self._objects.append(item)
 
     def pop(self) -> Event:
         return self._objects.popleft()

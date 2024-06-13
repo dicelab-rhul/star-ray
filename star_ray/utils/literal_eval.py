@@ -74,6 +74,7 @@ def literal_eval_with_ops(node_or_string):
                     _raise_malformed_node(node)
             else:
                 _raise_malformed_node(node)
+
         elif isinstance(node, Dict):
             if len(node.keys) != len(node.values):
                 _raise_malformed_node(node)

@@ -1,13 +1,16 @@
-"""" This package defines various events classes."""
+"""" This module defines various events classes."""
 
 from .event import Event
 from .user_event import (
     KeyEvent,
     MouseButtonEvent,
     MouseMotionEvent,
-    ExitEvent,
-    VisibilityEvent,
     JoyStickEvent,
+    WindowFocusEvent,
+    WindowMoveEvent,
+    WindowResizeEvent,
+    WindowCloseEvent,
+    WindowOpenEvent,
 )
 from .action_event import Action
 from .observation_event import (
@@ -29,6 +32,9 @@ __all__ = (
     "JoyStickEvent",
     "MouseButtonEvent",
     "MouseMotionEvent",
-    "ExitEvent",
-    "VisibilityEvent",
+    "WindowFocusEvent",
+    "WindowMoveEvent",
+    "WindowResizeEvent",
+    "WindowCloseEvent",
+    "WindowOpenEvent",
 )

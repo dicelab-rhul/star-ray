@@ -31,6 +31,10 @@ class MouseButtonEvent(Event):
     DOWN: ClassVar[int] = 1
     CLICK: ClassVar[int] = 2
 
+    BUTTON_LEFT: ClassVar[int] = 0
+    BUTTON_MIDDLE: ClassVar[int] = 1
+    BUTTON_RIGHT: ClassVar[int] = 2
+
     @validator("position", pre=True, always=True)
     @classmethod
     def _validate_position(cls, value: tuple | dict | list):

@@ -6,7 +6,7 @@ from .event import Event
 # TODO untested...
 class KillEvent(Event):
     """
-        Event that will kill an agent given its id (trigger a call to __kill__). It is up to the environment to manage the permission of use of this event.
+        Event that will kill an agent given its id (trigger a call to __terminate__). It is up to the environment to manage the permission of use of this event.
 
 
     Attributes:

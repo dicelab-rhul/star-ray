@@ -7,7 +7,7 @@ from ..event import (
     KeyEvent,
     MouseButtonEvent,
     MouseMotionEvent,
-    ExitEvent,
+    WindowCloseEvent,
     VisibilityEvent,
 )
 

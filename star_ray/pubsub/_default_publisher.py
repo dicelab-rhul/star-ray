@@ -1,11 +1,11 @@
+from typing import Dict, Set, Type
 from collections import defaultdict
 from copy import deepcopy
-from typing import Dict, Set, Type, Tuple
 
-from ..event import Event
 from ._pubsub import Subscriber
 from ._pubsub import Publisher
 from ._action import _fully_qualified_name
+from ..event import Event
 
 
 class TopicPublisher(Publisher):
@@ -43,3 +43,7 @@ class EventPublisher(TopicPublisher):
             sub.__notify__(deepcopy(message))
         for sub in self._subscribers["*"]:
             sub.__notify__(deepcopy(message))
+
+    @staticmethod
+    def fully_qualified_name(event_type: Type[Event]):
+        return _fully_qualified_name(event_type)

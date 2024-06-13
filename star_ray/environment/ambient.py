@@ -33,7 +33,7 @@ class Ambient(ABC):
         agent = _Agent.new(agent)
         agent_id = agent.get_id()
         del self._agents[agent_id]
-        agent.__kill__()
+        agent.__terminate__()
 
     @property
     def is_alive(self):
@@ -52,9 +52,9 @@ class Ambient(ABC):
     def get_agents(self) -> List[_Agent]:
         return list(self._agents.values())
 
-    def __kill__(self):
+    def __terminate__(self):
         for agent in self._agents.values():
-            agent.__kill__()
+            agent.__terminate__()
         self._agents.clear()
         self._is_alive = False
 

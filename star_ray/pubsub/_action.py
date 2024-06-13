@@ -1,5 +1,6 @@
-from pydantic import validator, Field
 from typing import Type, Any
+
+from pydantic import validator, Field
 import ray
 
 from ..event import Action
