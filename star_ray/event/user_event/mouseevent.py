@@ -1,7 +1,7 @@
-""" Module defining the [MouseButtonEvent] and [MouseMotionEvent] classes. """
+""" Module defining the `MouseButtonEvent` and `MouseMotionEvent` classes. """
 
 from typing import ClassVar, Tuple, List
-from pydantic import validator
+from pydantic import validator, Field
 from ..event import Event
 
 __all__ = ("MouseButtonEvent", "MouseMotionEvent")
@@ -24,7 +24,7 @@ class MouseButtonEvent(Event):
     button: int
     position: Tuple[float, float] | Tuple[int, int]
     status: int
-    target: str | List[str]
+    target: str | List[str] | None = Field(default=None)
 
     # static fields
     UP: ClassVar[int] = 0
@@ -75,11 +75,11 @@ class MouseMotionEvent(Event):
         id ([int]): A unique identifier for the event.
         timestamp ([float]): The timestamp (in seconds since UNIX epoch) when the event instance is created.
         source ([int]): A unique identifier for the source of this event.
-        position: ([tuple]): The window relative position of the mouse pointer.
-        relative ([tuple]): The relative motion of the mouse since the last event.
-        target ([str]): The UI element that the mouse is currently over. This value is UI implementation dependent and may be None, typically it will be a unique element ID.
+        position: ([Tuple[float,float]]): The window relative position of the mouse pointer.
+        relative ([Tuple[float,float]]): The relative motion of the mouse since the last event.
+        target ([str | List[str]]): The UI element that the mouse is currently over. This value is UI implementation dependent and may be None, typically it will be a unique element ID.
     """
 
     position: Tuple[float, float] | Tuple[int, int]
     relative: Tuple[float, float] | Tuple[int, int]
-    target: List[str]
+    target: str | List[str] | None = Field(default=None)
