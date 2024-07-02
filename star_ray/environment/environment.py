@@ -2,8 +2,7 @@ from __future__ import annotations
 import asyncio
 import time
 import signal
-from .wrapper_state import _State
-from .ambient import Ambient
+from .ambient import Ambient, _Ambient
 from ..utils import _Future, _LOGGER
 
 
@@ -19,7 +18,7 @@ class Environment:
     ):
         super().__init__()
         self._wait = wait
-        self._ambient = _State.new(ambient)
+        self._ambient = _Ambient.new(ambient)
         self._step = self._step_sync if sync else self._step_async
         self._cycle = 0
 
@@ -46,16 +45,16 @@ class Environment:
     def get_schedule(self):
         return [asyncio.create_task(self.loop())]
 
-    async def initialise_agents(self):
-        await _Future.gather(
-            [
-                agent.__initialise__(self._ambient)
-                for agent in self._ambient.get_agents()
-            ]
-        )
+    # async def initialise_agents(self):
+    #     await _Future.gather(
+    #         [
+    #             agent.__initialise__(self._ambient)
+    #             for agent in self._ambient.get_agents()
+    #         ]
+    #     )
 
     async def loop(self):
-        await self.initialise_agents()
+        # await self.initialise_agents()
         running = True
         while running:
             running = await self.step()

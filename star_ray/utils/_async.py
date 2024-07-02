@@ -25,11 +25,16 @@ class _Future:
     @staticmethod
     def call_sync(func: Callable[..., Any], *args, **kwargs):
         asyncio_future = asyncio.Future()
-        asyncio_future.set_result(func(*args, **kwargs))
+        try:
+            result = func(*args, **kwargs)
+            asyncio_future.set_result(result)
+        except Exception as e:
+            asyncio_future.set_exception(e)
         return _Future(asyncio_future)
 
     @staticmethod
     def call_async(func: Callable[..., Any], *args, **kwargs):
+        # TODO we need to handle exceptions properly here...?
         return _Future(asyncio.create_task(func(*args, **kwargs)))
 
     @staticmethod

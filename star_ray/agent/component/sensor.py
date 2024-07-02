@@ -8,7 +8,7 @@ from ...event import Event
 from ...pubsub import Subscriber, Subscribe, Unsubscribe
 
 if TYPE_CHECKING:
-    from ...environment.wrapper_state import _State
+    from ...environment.wrapper_state import State
 
 __all__ = ("Sensor",)
 
@@ -20,7 +20,7 @@ __all__ = ("Sensor",)
 
 class Sensor(Component, Subscriber):
 
-    def __query__(self, state: _State) -> None:
+    def __query__(self, state: State) -> None:
         # get sense actions
         self._actions = self.__sense__()
         # set the source of these actions to this sensor
@@ -38,7 +38,7 @@ class Sensor(Component, Subscriber):
     def __subscribe__(self) -> List[Subscribe | Unsubscribe]:
         return []
 
-    def __initialise__(self, state: _State) -> None:
+    def __initialise__(self, state: State) -> None:
         self._actions = self.__subscribe__()
         self._set_subscriber(self._actions)
         if self._actions:

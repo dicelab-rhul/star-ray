@@ -9,7 +9,7 @@ from ...utils import int64_uuid
 
 if TYPE_CHECKING:
     from ..agent import Agent
-    from ...environment.wrapper_state import _State
+    from ...environment.wrapper_state import State
 
 
 __all__ = (
@@ -93,16 +93,16 @@ class Component(metaclass=ComponentMeta):
     def __transduce__(self, events: List[Observation]) -> List[Observation]:
         return events
 
-    def __initialise__(self, state: _State) -> None:
+    def __initialise__(self, state: State) -> None:
         """Method called when the enviroment is read, this can be used to set up the component.
         For example, a sensor might subscribe to receive certain events here.
 
         Args:
-            state (_State): state of the environment
+            state (State): state of the environment
         """
 
     @abstractmethod
-    def __query__(self, state: _State) -> None:
+    def __query__(self, state: State) -> None:
         """Calling this method will cause this [`Component`] to query the state of the environment.
         This should not be called manually, it will be called by the environment execution scheduler.
         """

@@ -6,12 +6,12 @@ from typing import TYPE_CHECKING
 from .component import Component
 
 if TYPE_CHECKING:
-    from ...environment.wrapper_state import _State
+    from ...environment.wrapper_state import State
 
 
 class Actuator(Component):
 
-    def __query__(self, state: _State):
+    def __query__(self, state: State):
         # get actions
         self._actions = self.__attempt__()
         # set the source of these actions to this actuator

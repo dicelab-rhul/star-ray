@@ -9,7 +9,7 @@ from ..utils import _Future
 from .agent import Agent
 
 if TYPE_CHECKING:
-    from ..environment.wrapper_state import _State
+    from ..environment.wrapper_state import State
 
 __all__ = ("_Agent",)
 
@@ -49,11 +49,11 @@ class _Agent(ABC):
             raise TypeError(f"Invalid type for agent {type(agent)}.")
 
     @abstractmethod
-    def __initialise__(self, state: _State) -> _Future:
+    def __initialise__(self, state: State) -> _Future:
         pass
 
     @abstractmethod
-    def __sense__(self, state: _State) -> _Future:
+    def __sense__(self, state: State) -> _Future:
         pass
 
     @abstractmethod
@@ -61,7 +61,7 @@ class _Agent(ABC):
         pass
 
     @abstractmethod
-    def __execute__(self, state: _State) -> _Future:
+    def __execute__(self, state: State) -> _Future:
         pass
 
     @abstractmethod
@@ -73,7 +73,7 @@ class _Agent(ABC):
         pass
 
     @abstractmethod
-    def get_inner(self):
+    def get_inner(self) -> Any:
         pass
 
     @property
@@ -89,16 +89,16 @@ class _Agent(ABC):
 
 class _AgentWrapperRemote(_Agent):
 
-    def __initialise__(self, state: _State) -> _Future:
+    def __initialise__(self, state: State) -> _Future:
         return _Future.call_remote(self._inner.__initialise__, state)
 
-    def __sense__(self, state: _State) -> _Future:
+    def __sense__(self, state: State) -> _Future:
         return _Future.call_remote(self._inner.__sense__, state)
 
     def __cycle__(self) -> _Future:
         return _Future.call_remote(self._inner.__cycle__)
 
-    def __execute__(self, state: _State) -> _Future:
+    def __execute__(self, state: State) -> _Future:
         return _Future.call_remote(self._inner.__execute__, state)
 
     def __terminate__(self) -> _Future:
@@ -123,16 +123,16 @@ class _AgentWrapperRemote(_Agent):
 
 class _AgentWrapperLocal(_Agent):
 
-    def __initialise__(self, state: _State) -> _Future:
+    def __initialise__(self, state: State) -> _Future:
         return _Future.call_sync(self._inner.__initialise__, state)
 
-    def __sense__(self, state: _State) -> _Future:
+    def __sense__(self, state: State) -> _Future:
         return _Future.call_sync(self._inner.__sense__, state)
 
     def __cycle__(self) -> _Future:
         return _Future.call_sync(self._inner.__cycle__)
 
-    def __execute__(self, state: _State) -> _Future:
+    def __execute__(self, state: State) -> _Future:
         return _Future.call_sync(self._inner.__execute__, state)
 
     def __terminate__(self):
@@ -155,16 +155,16 @@ class _AgentWrapperLocal(_Agent):
 
 class _AgentWrapperLocalAsync(_AgentWrapperLocal):
 
-    def __initialise__(self, state: _State) -> _Future:
+    def __initialise__(self, state: State) -> _Future:
         return _Future.call_async(self._inner.__initialise__, state)
 
-    def __sense__(self, state: _State) -> _Future:
+    def __sense__(self, state: State) -> _Future:
         return _Future.call_async(self._inner.__sense__, state)
 
     def __cycle__(self) -> _Future:
         return _Future.call_async(self._inner.__cycle__)
 
-    def __execute__(self, state: _State) -> _Future:
+    def __execute__(self, state: State) -> _Future:
         return _Future.call_async(self._inner.__execute__, state)
 
     def __terminate__(self):

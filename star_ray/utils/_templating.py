@@ -64,6 +64,7 @@ __all__ = (
 class Validator(_Validator):
 
     def __init__(self, *args, **kwargs):
+        kwargs.setdefault("normalize", True)
         super().__init__(*args, **kwargs)
         self._hex_color_pattern = re.compile(r"^#?[0-9a-fA-F]{6}$")
 
@@ -198,7 +199,7 @@ class ValidatedEnvironment(Environment):
                 super().get_template(str(schema_name), None, {}).render()
             )
             schema = always_merger.merge(copy.deepcopy(self._schema_globals), schema)
-            validator = self.get_validator(schema)
+            validator = ValidatedEnvironment.get_validator(schema)
             self._validator_cache[name] = validator
         except TemplateNotFound:
             schema = None
@@ -208,14 +209,13 @@ class ValidatedEnvironment(Environment):
             )
         except TemplateNotFound:
             context = None
-
         if schema:
-            context = self._validate_context_with_schema(
+            context = ValidatedEnvironment._validate_context_with_schema(
                 validator, context=context, normalize=True
             )
         elif context:
             # LOGGER.warning("Context file: %s was provided without a validation schema.", context_name)
-            context = self._validate_context_without_schema(context)
+            context = ValidatedEnvironment._validate_context_without_schema(context)
         else:
             context = dict()  # no configuration files were available
         globals = always_merger.merge(globals, context)
@@ -226,45 +226,84 @@ class ValidatedEnvironment(Environment):
     def validate_context(self, name: str, context: Mapping[str, Any]):
         validator = self._validator_cache.get(name, None)
         if validator:
-            self._validate_context_with_schema(validator, context, normalize=False)
+            ValidatedEnvironment._validate_context_with_schema(
+                validator, context=context, normalize=False
+            )
         else:
-            self._validate_context_without_schema(context)
+            ValidatedEnvironment._validate_context_without_schema(context)
 
-    def _validate_context_without_schema(self, context: Mapping[str, Any]):
+    @staticmethod
+    def _validate_context_without_schema(context: Mapping[str, Any]):
         errors = ValidatedEnvironment._validate_context_keys(context)
         if errors:
             error_str = "\n    - ".join(errors)
             raise ValueError(f"Invalid context, see errors:\n    - {error_str}")
         return context
 
+    @staticmethod
     def _validate_context_with_schema(
-        self,
         validator: Any,
         context: MutableMapping[str, Any] = None,
-        normalize: bool = False,
+        normalize: bool = True,
     ):
         if context is None:
             context = dict()
         if normalize:
             context = validator.normalized(context)  # set default values etc.
+            if context is None:  # there were errors in normalization
+                errors = ValidatedEnvironment._format_validator_errors(validator.errors)
+                error_str = "\n    - ".join(errors)
+                raise ValueError(
+                    f"Context is not valid under the provided schema. See issues below:\n    - {error_str}"
+                )
         if validator.validate(context):
             return context
         else:
-            errors = []
-            for k, errs in validator.errors.items():
-                for v in errs:
-                    errors.append(f"Key: `{k}` {v}")
+            errors = ValidatedEnvironment._format_validator_errors(validator.errors)
             error_str = "\n    - ".join(errors)
             raise ValueError(
-                f"Context is not valid under the provided schema. see issues below:\n    - {error_str}"
+                f"Context is not valid under the provided schema. See issues below:\n    - {error_str}"
             )
 
-    def get_validator(self, schema: MutableMapping[str, Any]) -> Validator:
+    @staticmethod
+    def _format_validator_errors(errors):
+        result = []
+        for k, errs in errors.items():
+            for v in errs:
+                if isinstance(v, dict):
+                    result.extend(ValidatedEnvironment._format_validator_errors(v))
+                elif isinstance(v, str):
+                    result.append(f"Key: `{k}` {v}")
+                else:
+                    raise ValueError(
+                        f"Internal error: unknown validation error type: {type(v)}"
+                    )
+        return result
+
+    @staticmethod
+    def get_validator(schema: MutableMapping[str, Any]) -> Validator:
         errors = ValidatedEnvironment._validate_schema(schema)
         if errors:
             error_str = "\n    - ".join(errors)
             raise ValueError(f"Invalid schema, see errors:\n    - {error_str}")
-        return self.validator_class(schema, allow_unknown=self.allow_unknown)
+        return ValidatedEnvironment.validator_class(
+            schema, normalize=True, allow_unknown=ValidatedEnvironment.allow_unknown
+        )
+
+    @staticmethod
+    def load_and_validate_context(schema_path: str, context_path: str = None):
+        schema_path = str(Path(schema_path).expanduser().resolve())
+        with open(schema_path, "r", encoding="utf-8") as f:
+            validator = ValidatedEnvironment.get_validator(json.load(f))
+        context = None
+        if context_path:
+            with open(context_path, "r", encoding="utf-8") as f:
+                context = json.load(f)
+        return ValidatedEnvironment._validate_context_with_schema(
+            validator,
+            context=context,
+            normalize=True,
+        )
 
     @staticmethod
     def split_name_suffix(file: str):
@@ -287,9 +326,16 @@ class ValidatedEnvironment(Environment):
         errors = []
         errors.extend(ValidatedEnvironment._validate_context_keys(schema))
         for key, rules in schema.items():
-            # Check if default value is set
-            if "default" not in rules:
-                errors.append(f"No default value specified for field: '{key}'")
+            if isinstance(rules, dict):
+                if rules.get("type", None) == "dict":
+                    # default must be specified in the nested definition
+                    errors.extend(ValidatedEnvironment._validate_context_keys(schema))
+                    sub_schema = rules.get("schema", None)
+                    if sub_schema:
+                        errors.extend(ValidatedEnvironment._validate_schema(sub_schema))
+                    continue  # default isnt specified at the top level here...
+                if "default" not in rules:
+                    errors.append(f"No default value specified for field: '{key}'")
         return errors
 
 
@@ -331,45 +377,3 @@ class TemplateLoader(BaseLoader):
 
     def get_source(self, environment, template):
         return self._prefix_loader.get_source(environment, template)
-
-
-# if __name__ == "__main__":
-#     dir = "/home/ben/Documents/repos/dicelab/icua2/icua2/test/test_multitask_loader/svg_template/"
-
-#     templates = Templates()
-#     templates.add_namespace("test", dir)
-
-#     from starlette.requests import Request
-#     from starlette.datastructures import URL
-
-#     # Create a request scope dictionary
-#     request_scope = {
-#         "type": "http",
-#         "method": "GET",
-#         "path": "/your-path",
-#         "query_string": b"",
-#         "headers": [],
-#         "scheme": "http",
-#         "server": ("example.com", 80),
-#         "client": ("127.0.0.1", 12345),
-#         "url": URL("http://example.com/your-path"),
-#     }
-#     stub_request = Request(scope=request_scope)
-#     context = {
-#         "task_name": "task",
-#         "x": 10,
-#         "y": 10,
-#         "radius": 10,
-#         "width": 100,
-#         "height": 100,
-#         "stroke_color": "#ffffff",
-#         "stroke": 2,
-#         "color": "#000000",
-#     }
-#     print(
-#         templates.TemplateResponse(
-#             name="test/task.svg.jinja",
-#             request=stub_request,
-#             context={"task_name": "fooo"},
-#         ).body
-#     )

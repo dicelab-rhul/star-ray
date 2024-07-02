@@ -54,11 +54,11 @@ class Agent(ABC):
         _ = [sensor.__initialise__(state) for sensor in self.sensors]
         _ = [actuator.__initialise__(state) for actuator in self.actuators]
 
-    # TODO type hints _State
+    # TODO type hints State
     def __sense__(self, state, *args, **kwargs):
         _ = [sensor.__query__(state) for sensor in self.sensors]
 
-    # TODO type hints _State
+    # TODO type hints State
     def __execute__(self, state, *args, **kwargs):
         _ = [actuator.__query__(state) for actuator in self.actuators]
 
