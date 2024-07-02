@@ -9,7 +9,7 @@ setup(
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     packages=find_packages(),
-    url="https://github.com/dicelab-rhul/star_ray",
+    url="https://github.com/dicelab-rhul/star-ray",
     install_requires=[
         "ray==2.9.1",
         "starlette<=0.34.0",
