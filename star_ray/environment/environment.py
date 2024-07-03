@@ -25,13 +25,14 @@ class Environment:
     def run(self):
         async def _run():
             event_loop = asyncio.get_event_loop()
-            for sig in (signal.SIGINT, signal.SIGTERM):
-                event_loop.add_signal_handler(
-                    sig,
-                    lambda sig=sig: asyncio.create_task(
-                        _signal_shutdown(sig, event_loop), name=f"shutdown-signal-{sig}"
-                    ),
-                )
+            # TODO this doesnt work on windows...
+            # for sig in (signal.SIGINT, signal.SIGTERM):
+            #     event_loop.add_signal_handler(
+            #         sig,
+            #         lambda sig=sig: asyncio.create_task(
+            #             _signal_shutdown(sig, event_loop), name=f"shutdown-signal-{sig}"
+            #         ),
+            #     )
             await self.__initialise__(event_loop)
             _LOGGER.debug("Environment running...")
             await asyncio.gather(*self.get_schedule())
