@@ -20,8 +20,8 @@ setup(
         "cerberus",
     ],
     extras_require={
-        "xml": ["star_ray_xml"],
-        "pygame": ["star_ray_pygame"],
+        "xml": ["star_ray_xml>=0.0.2"],
+        "pygame": ["star_ray_pygame>=0.0.3"],
         # "web" : ["star_ray_web"] # not currently available...
     },
     python_requires=">=3.10",
