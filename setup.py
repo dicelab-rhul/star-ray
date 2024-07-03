@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="star_ray",
-    version="0.0.2",
+    version="0.0.3",
     author="Benedict Wilkins",
     author_email="benrjw@gmail.com",
     description="A multi-agent simulation platform based on the distributed computing platform `ray`.",
