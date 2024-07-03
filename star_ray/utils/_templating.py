@@ -51,6 +51,7 @@ from starlette.templating import Jinja2Templates
 from deepmerge import always_merger
 from cerberus import Validator as _Validator
 
+from ._logging import _LOGGER as LOGGER
 
 __all__ = (
     "Validator",
@@ -192,20 +193,23 @@ class ValidatedEnvironment(Environment):
 
         filename, _ = ValidatedEnvironment.split_name_suffix(name)
         # check for configuration files with the same name
-        context_name = filename.with_suffix(ValidatedEnvironment.EXT_CONTEXT)
-        schema_name = filename.with_suffix(ValidatedEnvironment.EXT_SCHEMA)
+        context_name: str = filename.with_suffix(
+            ValidatedEnvironment.EXT_CONTEXT).as_posix()
+        schema_name: str = filename.with_suffix(
+            ValidatedEnvironment.EXT_SCHEMA).as_posix()
         try:
             schema = json.loads(
-                super().get_template(str(schema_name), None, {}).render()
+                super().get_template(schema_name, None, {}).render()
             )
-            schema = always_merger.merge(copy.deepcopy(self._schema_globals), schema)
+            schema = always_merger.merge(
+                copy.deepcopy(self._schema_globals), schema)
             validator = ValidatedEnvironment.get_validator(schema)
             self._validator_cache[name] = validator
         except TemplateNotFound:
             schema = None
         try:
             context = json.loads(
-                super().get_template(str(context_name), None, {}).render()
+                super().get_template(context_name, None, {}).render()
             )
         except TemplateNotFound:
             context = None
@@ -214,8 +218,10 @@ class ValidatedEnvironment(Environment):
                 validator, context=context, normalize=True
             )
         elif context:
-            # LOGGER.warning("Context file: %s was provided without a validation schema.", context_name)
-            context = ValidatedEnvironment._validate_context_without_schema(context)
+            LOGGER.warning(
+                "Context file: %s was provided without a validation schema.", context_name)
+            context = ValidatedEnvironment._validate_context_without_schema(
+                context)
         else:
             context = dict()  # no configuration files were available
         globals = always_merger.merge(globals, context)
@@ -237,7 +243,8 @@ class ValidatedEnvironment(Environment):
         errors = ValidatedEnvironment._validate_context_keys(context)
         if errors:
             error_str = "\n    - ".join(errors)
-            raise ValueError(f"Invalid context, see errors:\n    - {error_str}")
+            raise ValueError(
+                f"Invalid context, see errors:\n    - {error_str}")
         return context
 
     @staticmethod
@@ -251,7 +258,8 @@ class ValidatedEnvironment(Environment):
         if normalize:
             context = validator.normalized(context)  # set default values etc.
             if context is None:  # there were errors in normalization
-                errors = ValidatedEnvironment._format_validator_errors(validator.errors)
+                errors = ValidatedEnvironment._format_validator_errors(
+                    validator.errors)
                 error_str = "\n    - ".join(errors)
                 raise ValueError(
                     f"Context is not valid under the provided schema. See issues below:\n    - {error_str}"
@@ -259,7 +267,8 @@ class ValidatedEnvironment(Environment):
         if validator.validate(context):
             return context
         else:
-            errors = ValidatedEnvironment._format_validator_errors(validator.errors)
+            errors = ValidatedEnvironment._format_validator_errors(
+                validator.errors)
             error_str = "\n    - ".join(errors)
             raise ValueError(
                 f"Context is not valid under the provided schema. See issues below:\n    - {error_str}"
@@ -271,7 +280,8 @@ class ValidatedEnvironment(Environment):
         for k, errs in errors.items():
             for v in errs:
                 if isinstance(v, dict):
-                    result.extend(ValidatedEnvironment._format_validator_errors(v))
+                    result.extend(
+                        ValidatedEnvironment._format_validator_errors(v))
                 elif isinstance(v, str):
                     result.append(f"Key: `{k}` {v}")
                 else:
@@ -292,7 +302,8 @@ class ValidatedEnvironment(Environment):
 
     @staticmethod
     def load_and_validate_context(schema_path: str, context_path: str = None):
-        schema_path = str(Path(schema_path).expanduser().resolve())
+        schema_path = Path(schema_path).expanduser(
+        ).resolve().absolute().as_posix()
         with open(schema_path, "r", encoding="utf-8") as f:
             validator = ValidatedEnvironment.get_validator(json.load(f))
         context = None
@@ -318,7 +329,8 @@ class ValidatedEnvironment(Environment):
         for key, _ in context.items():
             # TODO check that the key follows jinja variable syntax
             if "-" in key:
-                errors.append(f"Invalid character '-' found in context key: '{key}'.")
+                errors.append(
+                    f"Invalid character '-' found in context key: '{key}'.")
         return errors
 
     @staticmethod
@@ -329,13 +341,16 @@ class ValidatedEnvironment(Environment):
             if isinstance(rules, dict):
                 if rules.get("type", None) == "dict":
                     # default must be specified in the nested definition
-                    errors.extend(ValidatedEnvironment._validate_context_keys(schema))
+                    errors.extend(
+                        ValidatedEnvironment._validate_context_keys(schema))
                     sub_schema = rules.get("schema", None)
                     if sub_schema:
-                        errors.extend(ValidatedEnvironment._validate_schema(sub_schema))
+                        errors.extend(
+                            ValidatedEnvironment._validate_schema(sub_schema))
                     continue  # default isnt specified at the top level here...
                 if "default" not in rules:
-                    errors.append(f"No default value specified for field: '{key}'")
+                    errors.append(
+                        f"No default value specified for field: '{key}'")
         return errors
 
 
@@ -354,6 +369,10 @@ class TemplateLoader(BaseLoader):
         follow_links: bool = False,
         **kwargs,
     ):
+        assert isinstance(namespace, str)
+        assert isinstance(path, (list, str))
+        if isinstance(path, list):
+            assert all(isinstance(p, str) for p in path)
         if package_name:
             self._prefix_loader.mapping[namespace] = PackageLoader(
                 package_name, package_path=path

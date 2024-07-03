@@ -11,7 +11,7 @@ setup(
     packages=find_packages(),
     url="https://github.com/dicelab-rhul/star-ray",
     install_requires=[
-        "ray==2.9.1",
+        "ray>=2.9.1",
         "starlette<=0.34.0",
         "jinja2",
         "starlette",
