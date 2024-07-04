@@ -68,7 +68,7 @@ class Environment:
         _LOGGER.debug("STEP(%s) - Agents(%s)", self._cycle, str(len(agents)))
         t = time.time()
         await self._step(agents)
-        print(time.time() - t)
+        # print(time.time() - t)
         return self._ambient.is_alive
 
     async def _step_sync(self, agents: List[_Agent]) -> None:
@@ -86,7 +86,8 @@ class Environment:
 
 async def _signal_shutdown(sig, loop):
     print("Received signal {}, shutting down...".format(sig))
-    tasks = [task for task in asyncio.all_tasks() if task is not asyncio.current_task()]
+    tasks = [task for task in asyncio.all_tasks(
+    ) if task is not asyncio.current_task()]
     for task in tasks:
         task.cancel()
     await asyncio.gather(*tasks, return_exceptions=True)

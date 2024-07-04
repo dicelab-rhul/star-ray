@@ -9,7 +9,7 @@ from ...utils import int64_uuid
 
 if TYPE_CHECKING:
     from ..agent import Agent
-    from ...environment.wrapper_state import State
+    from ...environment.ambient import _Ambient
 
 
 __all__ = (
@@ -30,7 +30,8 @@ def _is_attempt_method(obj):
 class _ComponentMeta(type):
     def __new__(cls, name, bases, dct):
         # Get all methods decorated with the attempt_decorator
-        attempt_methods = [attr for _, attr in dct.items() if _is_attempt_method(attr)]
+        attempt_methods = [attr for _,
+                           attr in dct.items() if _is_attempt_method(attr)]
         # get attempt methods in base classes, these should not change...
         for base in bases:
             attempt_methods.extend(getattr(base, ATTEMPT_METHOD_CLS_VAR, []))
@@ -48,7 +49,7 @@ class Component(metaclass=ComponentMeta):
         super().__init__(*args, **kwargs)
         self._id: int = int64_uuid()
         # this will be set by the agent when this component is added to it.
-        # generally it should not be accessed unless you know what you are doing!
+        # generally it should not be accessed directly unless you know what you are doing!
         self._agent = None
 
         # actions to attempt in the current cycle to produce observations
@@ -57,17 +58,20 @@ class Component(metaclass=ComponentMeta):
         self._observations: _Observations = _Observations.empty()
 
     def on_add(self, agent: Agent) -> None:
+        """Callback for when this `Component` is added to an `Agent`. 
+
+        Args:
+            agent (Agent): agent that this `Component` was added to.
+        """
         self._agent = agent
 
     def on_remove(self, agent: Agent) -> None:
+        """Callback for when this `Component` is removed from an `Agent`. 
+
+        Args:
+            agent (Agent): agent that this `Component` was removed from to.
+        """
         self._agent = None
-
-    def __str__(self):
-        return f"{self.__class__.__name__}({self._id})"
-
-    def __repr__(self):
-        # TODO perhaps include information about the agent this component is attached to ?
-        return str(self)
 
     @property
     def id(self):
@@ -79,9 +83,19 @@ class Component(metaclass=ComponentMeta):
         return self._id
 
     def iter_observations(self):
+        """Iterate over and consumes the observations that are currently stored in this `Component`.
+
+        Yields:
+            [Observation]: the most recent observation.
+        """
         yield from filter(None, self._observations)
 
     def iter_actions(self):
+        """Iterates (and consumes?TODO) the actions that are currently stored in this `Component`.
+
+        Yields:
+            [Action]: the most recent action.
+        """
         yield from filter(None, self._actions)
 
     async def aiter_observations(self):
@@ -93,17 +107,16 @@ class Component(metaclass=ComponentMeta):
     def __transduce__(self, events: List[Observation]) -> List[Observation]:
         return events
 
-    def __initialise__(self, state: State) -> None:
-        """Method called when the enviroment is read, this can be used to set up the component.
-        For example, a sensor might subscribe to receive certain events here.
+    def __initialise__(self, state: _Ambient) -> None:
+        """Called when the environment is ready, this can be used to set up this `Component` and taken any initial actions.
 
         Args:
-            state (State): state of the environment
+            state (State): state of the environment.
         """
 
     @abstractmethod
-    def __query__(self, state: State) -> None:
-        """Calling this method will cause this [`Component`] to query the state of the environment.
+    def __query__(self, state: _Ambient) -> None:
+        """Calling this method will cause this `Component` to query the state of the environment.
         This should not be called manually, it will be called by the environment execution scheduler.
         """
 
@@ -113,16 +126,21 @@ class Component(metaclass=ComponentMeta):
             if action.source is None:
                 action.source = self.id
 
+    def __str__(self):
+        return f"{self.__class__.__name__}({self._id})"
+
+    def __repr__(self):
+        # TODO perhaps include information about the agent this component is attached to ?
+        return str(self)
+
 
 def attempt(*fun, route_events=None):
     """A decorator that defines an `attempt` method within a [Component]. `attempt` methods should be called in the agent's `__cycle__` method to schedule an action for execution. This is true of both actuators and sensors.
     Sensors:
         Any [`Sensor`] actions will be attempted at the start of the next cycle (before the next `__cycle__` is called).
-        TODO [PassiveSensor]
 
     Actuators:
         Any [`Actuator`] actions will be attempted at the end of the agents current cycle (after `__cycle__` has finished).
-        TODO [PassiveActuator]
 
     Args:
         fun ([`Callable`]): a function to wrap.
@@ -131,7 +149,7 @@ def attempt(*fun, route_events=None):
     ```
     class MyActuator(Actuator):
 
-        @Actuator.attempt
+        @attempt
         def move(self, direction):
             return MoveAction(direction)
 
@@ -166,17 +184,17 @@ def attempt(*fun, route_events=None):
         return _attempt(fun[0])
     else:
         raise ValueError(
-            f"Invalid arguments: {fun}, should contain only function to decorate, use keyword arguments otherwise."
+            f"Function {fun} takes no position arguments."
         )
 
 
 def _validate_route_events(fun, route_events):
     def _get_message():
         return f"`attempt` decorator received invalid arguments for fun {fun}:"
-
     # validate the routes provided
     if not isinstance(route_events, (list, tuple)):
-        raise ValueError(_get_message(), "`route_events` must be a list or tuple.")
+        raise ValueError(
+            _get_message(), "`route_events` must be a list or tuple.")
     if len(route_events) == 0:
         raise ValueError(_get_message(), "`route_events` must not be empty.")
     for cls in route_events:

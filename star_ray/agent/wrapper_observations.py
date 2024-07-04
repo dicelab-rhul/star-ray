@@ -1,21 +1,18 @@
-from typing import Union, List, Any
+from typing import List, Any
 from abc import ABC, abstractmethod
+from collections import deque
 import ray
-from ray import ObjectRef
-import asyncio
 
 from ..event import Event
-
-from collections import deque
 
 
 class _Observations(ABC):
 
     @staticmethod
-    def new(objects):
+    def new(objects: List[Event | ray.ObjectRef]):
         if len(objects) == 0:
             return _Observations.empty()
-        elif isinstance(objects[0], ObjectRef):
+        elif isinstance(objects[0], ray.ObjectRef):
             return _ObservationsRemote(objects)
         elif isinstance(objects[0], Event):
             return _ObservationsLocal(objects)
@@ -25,6 +22,14 @@ class _Observations(ABC):
     @staticmethod
     def empty():
         return _ObservationsLocal([])
+
+    @abstractmethod
+    def is_empty(self):
+        pass
+
+    @abstractmethod
+    def __len__(self):
+        pass
 
     @abstractmethod
     def push_all(self, items: List[Any]) -> None:
@@ -42,9 +47,9 @@ class _Observations(ABC):
     def __iter__(self):
         pass
 
-    # @abstractmethod
-    # async def __aiter__(self):
-    #     pass
+    @abstractmethod
+    def __next__(self) -> Event:
+        pass
 
 
 class _ObservationsRemote(_Observations):
@@ -53,10 +58,16 @@ class _ObservationsRemote(_Observations):
         super().__init__()
         self._objects = deque(objects)
 
-    def push(self, item: ObjectRef) -> None:
+    def __len__(self):
+        return self._objects.count
+
+    def is_empty(self):
+        return self._objects.count == 0
+
+    def push(self, item: ray.ObjectRef) -> None:
         self._objects.append(item)
 
-    def push_all(self, items: List[Any]) -> None:
+    def push_all(self, items: List[ray.ObjectRef]) -> None:
         self._objects.extend(items)
 
     def pop(self) -> Event:
@@ -65,20 +76,10 @@ class _ObservationsRemote(_Observations):
     def __iter__(self):
         return self
 
-    def __next__(self):
+    def __next__(self) -> Event:
         if not self._objects:
             raise StopIteration
         return ray.get(self._objects.popleft())
-
-    # async def __aiter__(self):
-    #     return self
-
-    # async def __anext__(self):
-    #     if not self._objects:
-    #         raise StopAsyncIteration
-    #     object_ref: ObjectRef = self._objects.popleft()
-    #     event = await object_ref
-    #     return event
 
 
 class _ObservationsLocal(_Observations):
@@ -87,10 +88,16 @@ class _ObservationsLocal(_Observations):
         super().__init__()
         self._objects = deque(objects)
 
-    def push_all(self, items: List[Any]) -> None:
+    def __len__(self):
+        return self._objects.count
+
+    def is_empty(self):
+        return self._objects.count == 0
+
+    def push_all(self, items: List[Event]) -> None:
         self._objects.extend(items)
 
-    def push(self, item: ObjectRef) -> None:
+    def push(self, item: Event) -> None:
         self._objects.append(item)
 
     def pop(self) -> Event:
@@ -99,7 +106,7 @@ class _ObservationsLocal(_Observations):
     def __iter__(self):
         return self
 
-    def __next__(self):
+    def __next__(self) -> Event:
         if not self._objects:
             raise StopIteration
         return self._objects.popleft()

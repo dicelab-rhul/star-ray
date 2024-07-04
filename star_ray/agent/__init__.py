@@ -3,9 +3,12 @@ from .wrapper_observations import _Observations
 
 from .agent import Agent, AgentFactory
 from .action_routing import RoutedActionAgent
+from .agent_routed import AgentRouted
+
 
 from .component import (
     attempt,
+    observe,
     OnAwake,
     Sensor,
     Actuator,
@@ -25,4 +28,5 @@ __all__ = (
     "Sensor",
     "Actuator",
     "AgentFactory",
+    "AgentRouted",
 )
