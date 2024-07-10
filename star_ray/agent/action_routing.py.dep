@@ -33,7 +33,8 @@ class RoutedActionAgent(Agent):
 
     def __attempt__(self, actions):
         for action in actions:
-            cls_name = RoutedActionAgent.get_fully_qualified_name(action.__class__)
+            cls_name = RoutedActionAgent.get_fully_qualified_name(
+                action.__class__)
             attempts = self._action_router_map.get(cls_name, None)
             if attempts is None:
                 raise ValueError(

@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 class Environment:
     def __init__(
-        self, ambient: Ambient, sync: bool = True, wait: float = 1.0, *args, **kwargs
+        self, ambient: Ambient, sync: bool = True, wait: float = 0.05, *args, **kwargs
     ):
         super().__init__()
         self._wait = wait

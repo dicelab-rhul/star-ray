@@ -1,6 +1,5 @@
 import unittest
-from typing import List, Dict, Tuple, Any
-from star_ray.agent.component.type_routing import _TypeRouter, observe, resolve_first_argument_types
+from star_ray.agent.component.type_routing import _TypeRouter, observe
 
 
 class A:
@@ -23,29 +22,7 @@ class E:
     pass
 
 
-class TestTypeRouting(unittest.TestCase):
-
-    def test_resolve_types(self):
-        result = _TypeRouter.resolve_route_types(
-            [list, List, Dict[str, Any], Tuple, Any, int | str])
-        self.assertListEqual(result, [list, list, dict, tuple, Any, int, str])
-
-    def test_resolve_first_argument_types(self):
-        def myfunc1(self, x: List[str], y: object, z: int, w: Any) -> float:
-            pass
-
-        def myfunc2(x: str, y: object, z: int, w: Any) -> float:
-            pass
-        TypeAlias = str | int | List[str]
-
-        def myfunc3(x: TypeAlias) -> float:
-            pass
-        result = resolve_first_argument_types(myfunc1)
-        self.assertListEqual(result, [list])
-        result = resolve_first_argument_types(myfunc2)
-        self.assertListEqual(result, [str])
-        result = resolve_first_argument_types(myfunc3)
-        self.assertListEqual(result, [str, int, list])
+class TestObserve(unittest.TestCase):
 
     def test_observe_type_routing(self):
         # Define observe-decorated functions

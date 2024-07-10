@@ -13,9 +13,15 @@ class Actuator(Component):
 
     def __query__(self, state: _Ambient):
         # get actions
-        self._actions = self.__attempt__()
+        actions = self.__attempt__()
+        if not isinstance(actions, (list, tuple)):
+            raise ValueError(
+                f"`__attempt__` must return a `list` of actions, received: {actions}")
+        self._actions.extend(actions)
+        self._actions = list(filter(None, self._actions))
+        # print([type(a) for a in self._actions])
         # set the source of these actions to this actuator
-        self._set_source(self._actions)
+        Component.set_action_source(self, self._actions)
         # attempt the sense act and get the resulting observations
         observations = state.__update__(self._actions)
         # preprocess the observations ready to be received by the agent
@@ -38,4 +44,4 @@ class Actuator(Component):
         See also:
             [`Sensor.__sense__`]
         """
-        return self._actions
+        return []

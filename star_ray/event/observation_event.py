@@ -25,26 +25,34 @@ class ErrorObservation(Observation):
     exception_type: str
     traceback_message: str
 
-    def __init__(self, exception: Exception = None, **kwargs):
-        assert exception
-        exception_type = exception.__class__.__name__
-        traceback_message = "".join(
-            traceback.format_exception(
-                type(exception), value=exception, tb=exception.__traceback__
-            )
-        )
-        super().__init__(
-            exception_type=exception_type, traceback_message=traceback_message, **kwargs
-        )
-
     def __str__(self):
         return f"ErrorResponse(\nsource={self.source},\n{self.traceback_message}\n)"
 
     def exception(self):
         return _ObservationError(f"\n{self.exception_type}:\n{self.traceback_message}")
 
+    def from_exception(action: Event | int, exception: Exception, **kwargs) -> "ErrorActiveObservation":
+        """Factory for `ErrorActiveObservation` that will build an instance from an `Exception`.
 
-class ErrorActiveObservation(ActiveObservation, ErrorObservation):
+        Args:
+            action (Event | int): the action that caused the exception (or it's unique `id`).
+            exception (Exception): the exception
+
+        Returns:
+            ErrorActiveObservation: the error observation
+        """
+        exception_type = exception.__class__.__name__
+        traceback_message = "".join(
+            traceback.format_exception(
+                type(exception), value=exception, tb=exception.__traceback__
+            )
+        )
+        return ErrorActiveObservation(
+            action_id=action, exception_type=exception_type, traceback_message=traceback_message, **kwargs
+        )
+
+
+class ErrorActiveObservation(ErrorObservation, ActiveObservation):
     pass
 
 
