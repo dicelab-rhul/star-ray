@@ -258,10 +258,10 @@ class _AmbientLocal(_Ambient):
         return self._inner.get_is_alive()
 
     async def __initialise__(self):
-        return await self._inner.__initialise__(self)
+        return await self._inner.__initialise__()
 
     async def __terminate__(self):
-        return await self._inner.__terminate__(self)
+        return await self._inner.__terminate__()
 
     def __subscribe__(self, actions: list[Subscribe | Unsubscribe]) -> list[Any]:
         return [self._inner.__subscribe__(query) for query in actions]
