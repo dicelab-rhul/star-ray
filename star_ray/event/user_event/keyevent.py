@@ -1,7 +1,7 @@
-""" Module defining the [KeyEvent] class. [KeyEvent] is used to represent user keyboard input."""
+"""Module defining the `KeyEvent` class, it is used to represent user keyboard input."""
 
-from typing import ClassVar, Union
-from pydantic import validator
+from typing import ClassVar
+from pydantic import field_validator
 from ..event import Event
 
 
@@ -25,8 +25,8 @@ class KeyEvent(Event):
     DOWN: ClassVar[int] = 1
     HOLD: ClassVar[int] = 2
 
-    @validator("status", pre=True, always=True)
-    def _validate_status(cls, value: Union[str, int]):  # pylint: disable=E0213
+    @field_validator("status", mode="before")
+    def _validate_status(cls, value: str | int):
         if isinstance(value, str):
             if "release" in value or value == "up":
                 return cls.UP

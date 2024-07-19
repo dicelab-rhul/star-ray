@@ -1,6 +1,8 @@
-from typing import List
+"""Test `Component` classes."""
+
 import copy
 import unittest
+from typing import Any
 from star_ray.agent import Actuator, Sensor, attempt
 from star_ray.event import Event
 from unittest.mock import MagicMock
@@ -9,25 +11,29 @@ from star_ray.pubsub import Subscribe
 
 
 class MyActuator(Actuator):
+    """Test actuator."""
 
     @attempt()
-    def foo(self, action):
+    def foo(self, action: Any):  # noqa: D102
         return action
 
 
 class MySensor(Sensor):
+    """Test sensor."""
 
-    def __subscribe__(self) -> List[Subscribe]:
+    def __subscribe__(self) -> list[Subscribe]:  # noqa: D105
         return [Subscribe(topic="mytopic")]
 
     @attempt()
-    def bar(self, action):
+    def bar(self, action: Any):  # noqa: D102
         return action
 
 
 class TestComponents(unittest.TestCase):
+    """Unit tests for sensors and actuators."""
 
     def test_sensor_cycle(self):
+        """Test __cycle__ method in Sensor."""
         state = MagicMock()
         agent = MagicMock()
         action1 = Event()
@@ -53,6 +59,7 @@ class TestComponents(unittest.TestCase):
         self.assertListEqual(observations[1:], [action1, action2])
 
     def test_actuator_cycle(self):
+        """Test __cycle__ method in Actuator."""
         state = MagicMock()
         agent = MagicMock()
         agent.id = 0

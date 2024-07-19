@@ -2,12 +2,12 @@ from weakref import ref
 from abc import ABC, abstractmethod
 from typing import Any
 from ray.actor import ActorHandle
+from copy import deepcopy
 
 __all__ = ("Subscriber", "Publisher")
 
 
 class Subscriber(ABC):
-
     @abstractmethod
     def __notify__(self, message: Any) -> None:
         pass
@@ -25,14 +25,13 @@ def _SubscriberWrapper(subscriber: Any):
 
 
 class _SubscriberLocal(Subscriber):
-
     def __init__(self, subscriber: Subscriber):
         self._handle = ref(subscriber)
 
-    def __notify__(self, message: Any) -> bool:
+    def __notify__(self, message: Any) -> None:
         sub = self._handle()
         if sub:
-            sub.__notify__(message)
+            sub.__notify__(deepcopy(message))
         else:
             raise ValueError("Subscriber was garbage collected before unsubscribing.")
 
@@ -52,12 +51,11 @@ class _SubscriberLocal(Subscriber):
 
 
 class _SubscriberRemote(Subscriber):
-
     def __init__(self, actor_handle: ActorHandle):
         self._handle = actor_handle
 
     def __notify__(self, message: Any) -> None:
-        self._handle.__notify__.remote(message)
+        self._handle.__notify__.remote(deepcopy(message))
 
     def __eq__(self, other):
         if isinstance(other, _SubscriberRemote):
@@ -75,7 +73,6 @@ class _SubscriberRemote(Subscriber):
 
 
 class Publisher(ABC):
-
     @abstractmethod
     def subscribe(self, topic: Any, subscriber: Subscriber) -> None:
         pass
@@ -85,5 +82,5 @@ class Publisher(ABC):
         pass
 
     @abstractmethod
-    def notify_subscribers(self, message: Any) -> None:
+    def publish(self, message: Any) -> None:
         pass

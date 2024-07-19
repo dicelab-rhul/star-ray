@@ -1,34 +1,38 @@
+"""Unit tests for the @attempt decorator."""
+
 import unittest
-from star_ray.agent.component.type_routing import _TypeRouter, attempt
-from star_ray.agent import Actuator
+from star_ray.utils import TypeRouter
+from star_ray.agent import Actuator, attempt
 
 
-class A:
+class A:  # noqa: D101
     pass
 
 
-class B(A):
+class B(A):  # noqa: D101
     pass
 
 
-class C(A):
+class C(A):  # noqa: D101
     pass
 
 
-class D(B, C):
+class D(B, C):  # noqa: D101
     pass
 
 
-class E:
+class E:  # noqa: D101
     pass
 
 
 class TestAttempt(unittest.TestCase):
+    """@attempt unit tests."""
 
     def test_attempt_type_routing(self):
-        # Define observe-decorated functions
-        class MyActuator(Actuator):
+        """Test the `@attempt` decorator with arguments."""
 
+        # Define attempt-decorated functions
+        class MyActuator(Actuator):
             @attempt([A])
             def func_a(self, e):
                 return f"func_a: {type(e).__name__}"
@@ -36,10 +40,12 @@ class TestAttempt(unittest.TestCase):
             @attempt([C])
             def func_c(self, e):
                 return f"func_c: {type(e).__name__}"
+
         actuator = MyActuator()
 
+        print(actuator.func_a.route_types)
         # Initialize TypeRouter
-        router = _TypeRouter()
+        router = TypeRouter()
         router.add(actuator.func_a)
         router.add(actuator.func_c)
 
@@ -49,14 +55,16 @@ class TestAttempt(unittest.TestCase):
         self.assertEqual(router(C()), ["func_c: C"])
         self.assertEqual(router(D()), ["func_c: D"])
         self.assertEqual(router(E()), [])
-        self.assertListEqual(['func_a: A', 'func_a: B', 'func_c: C', 'func_c: D'], list(
-            actuator.iter_actions()))
+        self.assertListEqual(
+            ["func_a: A", "func_a: B", "func_c: C", "func_c: D"],
+            list(actuator.iter_actions()),
+        )
 
-    def test_attempt_type_routing_with_typehints(self):
+    def test_attempt_with_typehints(self):
+        """Test the `@attempt` decorator using type hints."""
 
-        # Define observe-decorated functions
+        # Define attempt-decorated functions
         class MyActuator(Actuator):
-
             @attempt
             def func_a(self, e: A):
                 return f"func_a: {type(e).__name__}"
@@ -68,7 +76,7 @@ class TestAttempt(unittest.TestCase):
         actuator = MyActuator()
 
         # Initialize TypeRouter
-        router = _TypeRouter()
+        router = TypeRouter()
         router.add(actuator.func_a)
         router.add(actuator.func_ab)
 
@@ -78,8 +86,9 @@ class TestAttempt(unittest.TestCase):
         self.assertEqual(router(B()), ["func_ab: B"])
         self.assertEqual(router(E()), [])
 
-        self.assertListEqual(['func_a: A', 'func_ab: A', 'func_ab: B'], list(
-            actuator.iter_actions()))
+        self.assertListEqual(
+            ["func_a: A", "func_ab: A", "func_ab: B"], list(actuator.iter_actions())
+        )
 
 
 if __name__ == "__main__":

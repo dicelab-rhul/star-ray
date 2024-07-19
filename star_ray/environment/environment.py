@@ -1,21 +1,33 @@
+"""Module defines the `Environment` class.
+
+The environment is the container in which the simulation runs and is the simulation entry point. It manages the execution of agents, and has a state (the `Ambient`) which agents read and mutate.
+"""
+
 from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import asyncio
-import time
-import signal
 from .ambient import Ambient, _Ambient
 from ..utils import _Future, _LOGGER
 
-
-from typing import List, TYPE_CHECKING
-
 if TYPE_CHECKING:
-    from ..agent.wrapper_agent import _Agent
+    from ..agent import _Agent
 
 
 class Environment:
+    """The environment is the container in which the simulation runs and is the simulation entry point. It manages the execution of agents, and has a state (the `Ambient`) which agents read and mutate."""
+
     def __init__(
-        self, ambient: Ambient, sync: bool = True, wait: float = 0.05, *args, **kwargs
+        self, ambient: Ambient, sync: bool = True, wait: float = 0.05, **kwargs
     ):
+        """Constructor.
+
+        Args:
+            ambient (Ambient): the state of the environment.
+            sync (bool, optional): whether to run the agents synchronously or not. Under the default schedule, if True this means that each cycle method will be gathered together for all agents - i.e. all agents will `__sense__` then `__cycle__` then `__execute__`. If False, then these methods will execute in not particular order, however there will always be a sync point at the start of each cycle.
+            wait (float, optional): time to wait between cycles, this leaves room for other async operations if required. Defaults to 0.05.
+            **kwargs (dict[str,Any], optional): optional additional arguments.
+        """
         super().__init__()
         self._wait = wait
         self._ambient = _Ambient.new(ambient)
@@ -23,38 +35,34 @@ class Environment:
         self._cycle = 0
 
     def run(self):
+        """Entry point of the simulation, this call is blocking."""
+
         async def _run():
             event_loop = asyncio.get_event_loop()
-            # TODO this doesnt work on windows...
-            # for sig in (signal.SIGINT, signal.SIGTERM):
-            #     event_loop.add_signal_handler(
-            #         sig,
-            #         lambda sig=sig: asyncio.create_task(
-            #             _signal_shutdown(sig, event_loop), name=f"shutdown-signal-{sig}"
-            #         ),
-            #     )
             await self.__initialise__(event_loop)
             _LOGGER.debug("Environment running...")
             await asyncio.gather(*self.get_schedule())
 
         asyncio.run(_run())
 
-    async def __initialise__(self, event_loop):
+    async def __initialise__(self, event_loop: asyncio.AbstractEventLoop):
+        """Initialise this environment. Override this for custom initialisation.
+
+        Args:
+            event_loop (AbstractEventLoop): the asyncio event loop that is in use.
+        """
         await self._ambient.__initialise__()
-        _LOGGER.debug("Environment initialised successfully.")
 
-    def get_schedule(self):
-        return [asyncio.create_task(self.loop())]
+    def get_schedule(self) -> list[asyncio.Task]:
+        """Get all asyncio tasks that are to run during the simulation. This will include one or more schedulars that manange the execution of the agents, but may also include other environmental processes.
 
-    # async def initialise_agents(self):
-    #     await _Future.gather(
-    #         [
-    #             agent.__initialise__(self._ambient)
-    #             for agent in self._ambient.get_agents()
-    #         ]
-    #     )
+        Returns:
+            list[Task]: list of tasks that should be run during the simulation.
+        """
+        return [asyncio.create_task(self._loop())]
 
-    async def loop(self):
+    async def _loop(self):
+        """Default schedule."""
         # await self.initialise_agents()
         running = True
         while running:
@@ -63,32 +71,27 @@ class Environment:
         _LOGGER.debug("--- MAIN SIMULATION LOOP COMPLETED --- ")
 
     async def step(self) -> bool:
+        """Takes a single step in the simulation. Part of the default schedule.
+
+        Returns:
+            bool: whether the simulation should continue
+        """
         self._cycle += 1
         agents = self._ambient.get_agents()
         _LOGGER.debug("STEP(%s) - Agents(%s)", self._cycle, str(len(agents)))
-        t = time.time()
         await self._step(agents)
-        # print(time.time() - t)
         return self._ambient.is_alive
 
-    async def _step_sync(self, agents: List[_Agent]) -> None:
+    async def _step_sync(self, agents: list[_Agent]) -> None:
+        """Step all agents with sync points after `__sense__`, `__cycle__`, `__execute__`."""
         await _Future.gather([agent.__sense__(self._ambient) for agent in agents])
         await _Future.gather([agent.__cycle__() for agent in agents])
         await _Future.gather([agent.__execute__(self._ambient) for agent in agents])
 
-    async def _step_async(self, agents: List[_Agent]) -> None:
+    async def _step_async(self, agents: list[_Agent]) -> None:
+        """Step all agents with a sync point at the end of each cycle."""
         futures = []
         futures.extend([agent.__sense__(self._ambient) for agent in agents])
         futures.extend([agent.__cycle__() for agent in agents])
         futures.extend([agent.__execute__(self._ambient) for agent in agents])
         await _Future.gather(futures)
-
-
-async def _signal_shutdown(sig, loop):
-    print("Received signal {}, shutting down...".format(sig))
-    tasks = [task for task in asyncio.all_tasks(
-    ) if task is not asyncio.current_task()]
-    for task in tasks:
-        task.cancel()
-    await asyncio.gather(*tasks, return_exceptions=True)
-    loop.stop()

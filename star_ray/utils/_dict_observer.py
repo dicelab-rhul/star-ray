@@ -1,4 +1,6 @@
-from typing import Any, Tuple
+# TODO check if this is used anywhere? refactor by removing!
+
+from typing import Any
 import weakref
 from collections import UserDict
 
@@ -8,7 +10,7 @@ class DictObservable(UserDict):
         super().__init__(*args, **kwargs)
         self._callbacks = weakref.WeakSet()
 
-    def _trigger_callbacks(self, key: Any, values: Tuple[Any, Any]):
+    def _trigger_callbacks(self, key: Any, values: tuple[Any, Any]):
         for callback in self._callbacks:
             callback(key, values)
 
@@ -36,7 +38,6 @@ class DictObservable(UserDict):
 
 # Example usage:
 if __name__ == "__main__":
-
     x = DictObservable()
     x.add_callback(print)
     x[0] = 1

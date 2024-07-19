@@ -1,7 +1,8 @@
+"""Module defines the `Agent` base class, which should be used for all agent implementations. It partially defines the agent-environment interaction API. See class documentation for details."""
+
 from __future__ import annotations
 
 from abc import abstractmethod, ABC
-from typing import List, Set
 from .component import Sensor, Actuator, Component
 from ..utils import int64_uuid
 
@@ -11,15 +12,8 @@ if TYPE_CHECKING:
     from ..environment import State
 
 
-class AgentFactory(ABC):
-
-    @abstractmethod
-    def __call__(self, *args, **kwargs) -> ABC:
-        pass
-
-
 class Agent(ABC):
-    """ An agent is a small program that runs in a loop, continously sensing its environment and taking actions to modify it.
+    """An agent is a small program that runs in a loop, continously sensing its environment and taking actions to modify it.
 
     The execution of the agent is typically managed by its environment and proceedes via the following method calls:
     - `__initialise__(state)` set up the agent.
@@ -48,10 +42,10 @@ class Agent(ABC):
         # process observations and update beliefs/learn
         for sensor in self.sensors:
             for observation in sensor.iter_observations():
-                pass # update beliefs
+                pass  # update beliefs
         for actuator in self.actuators:
             for observation in sensor.iter_observations():
-                pass # update beliefs (and typically handle any errors)
+                pass  # update beliefs (and typically handle any errors)
 
         # take actions based on beliefs
         if self.beliefs["empty_ahead"]:
@@ -75,21 +69,23 @@ class Agent(ABC):
     """
 
     def __init__(
-        self, sensors: List[Sensor], actuators: List[Actuator], *args, **kwargs
+        self, sensors: list[Sensor], actuators: list[Actuator], *args, **kwargs
     ):
         """Constructor.
 
         Args:
             sensors (List[Sensor]): collection of sensors.
             actuators (List[Actuator]): collection of actuators.
+            args (tuple[Any], optional): optional additional arguments.
+            kwargs (dict[str, Any], optional): optional additional keyword arguments.
         """
         super().__init__(*args, **kwargs)
         self._id = int64_uuid()
-        self._sensors: Set[Sensor] = set()
-        self._actuators: Set[Actuator] = set()
+        self._sensors: set[Sensor] = set()
+        self._actuators: set[Actuator] = set()
 
-        self._ic: Set[Component] = set()  # components to initialise
-        self._tc: Set[Component] = set()  # components to terminate
+        self._ic: set[Component] = set()  # components to initialise
+        self._tc: set[Component] = set()  # components to terminate
 
         self._is_initialised = False
         self._is_terminated = False
@@ -105,7 +101,7 @@ class Agent(ABC):
             )
 
     @property
-    def sensors(self) -> Set[Sensor]:
+    def sensors(self) -> set[Sensor]:
         """Getter for the agent's `Sensor`s.
 
         Returns:
@@ -113,7 +109,7 @@ class Agent(ABC):
         """
         return set(self._sensors)
 
-    def get_sensors(self) -> Set[Sensor]:
+    def get_sensors(self) -> set[Sensor]:
         """Getter for the agent's `Sensor`s.
 
         Returns:
@@ -122,7 +118,7 @@ class Agent(ABC):
         return set(self._sensors)
 
     @property
-    def actuators(self) -> Set[Actuator]:
+    def actuators(self) -> set[Actuator]:
         """Getter for the agent's `Actuator`s.
 
         Returns:
@@ -130,7 +126,7 @@ class Agent(ABC):
         """
         return set(self._actuators)
 
-    def get_actuators(self) -> Set[Actuator]:
+    def get_actuators(self) -> set[Actuator]:
         """Getter for the agent's `Actuator`s.
 
         Returns:
@@ -156,7 +152,7 @@ class Agent(ABC):
         return self._id
 
     def __initialise__(self, state: State):
-        """Initialises the agent. Overriding allows set up of the agent. Initial sense actions may be triggered here to ensure the resulting observations are avaliable in the first call to `__cycle__`. 
+        """Initialises the agent. Overriding allows set up of the agent. Initial sense actions may be triggered here to ensure the resulting observations are avaliable in the first call to `__cycle__`.
 
         Args:
             state (State): the state of the environment.
@@ -164,7 +160,7 @@ class Agent(ABC):
         # TODO call query?
 
     def __terminate__(self, state: State):
-        """ Terminates the agent. Overriding allows safe clean up of any resources the agent or its `Component`s might be using. By default this will automatically remove all sensors and actuators from the agent to allow them to perform safe clean up.
+        """Terminates the agent. Overriding allows safe clean up of any resources the agent or its `Component`s might be using. By default this will automatically remove all sensors and actuators from the agent to allow them to perform safe clean up.
 
         Args:
             state (State): the state of the environment.
@@ -180,6 +176,8 @@ class Agent(ABC):
 
         Args:
             state (State): the state of the environment.
+            args (tuple[Any], optional): optional additional arguments.
+            kwargs (dict[str, Any], optional): optional additional keyword arguments.
         """
         _ = [sensor.__query__(state) for sensor in self.sensors]
 
@@ -192,6 +190,8 @@ class Agent(ABC):
 
         Args:
             state (State): the state of the environment.
+            args (tuple[Any], optional): optional additional arguments.
+            kwargs (dict[str, Any], optional): optional additional keyword arguments.
         """
         _ = [actuator.__query__(state) for actuator in self.actuators]
 

@@ -1,4 +1,6 @@
-from typing import List, Any
+"""Internal base classes that manage local/remote observations in `Component` implementations."""
+
+from typing import Any
 from abc import ABC, abstractmethod
 from collections import deque
 import ray
@@ -7,9 +9,15 @@ from ..event import Event
 
 
 class _Observations(ABC):
+    """Abstract base class for managing collections of observations, either remote or local. This class provides a common interface for operations on a collection of observations, which can be either local (`Event` objects) or remote (`ray.ObjectRef` objects).
+
+    The class is used internally by `Component` classes to seemlessly manage the retreival of remote (or local) data.
+
+    Important note: Iterating over the collection will consume it.
+    """
 
     @staticmethod
-    def new(objects: List[Event | ray.ObjectRef]):
+    def new(objects: list[Event | ray.ObjectRef]):
         if len(objects) == 0:
             return _Observations.empty()
         elif isinstance(objects[0], ray.ObjectRef):
@@ -32,7 +40,7 @@ class _Observations(ABC):
         pass
 
     @abstractmethod
-    def push_all(self, items: List[Any]) -> None:
+    def push_all(self, items: list[Any]) -> None:
         pass
 
     @abstractmethod
@@ -53,6 +61,7 @@ class _Observations(ABC):
 
 
 class _ObservationsRemote(_Observations):
+    """Collection of remote observations."""
 
     def __init__(self, objects):
         super().__init__()
@@ -67,7 +76,7 @@ class _ObservationsRemote(_Observations):
     def push(self, item: ray.ObjectRef) -> None:
         self._objects.append(item)
 
-    def push_all(self, items: List[ray.ObjectRef]) -> None:
+    def push_all(self, items: list[ray.ObjectRef]) -> None:
         self._objects.extend(items)
 
     def pop(self) -> Event:
@@ -83,6 +92,7 @@ class _ObservationsRemote(_Observations):
 
 
 class _ObservationsLocal(_Observations):
+    """Collection of local observations."""
 
     def __init__(self, objects):
         super().__init__()
@@ -94,7 +104,7 @@ class _ObservationsLocal(_Observations):
     def is_empty(self):
         return self._objects.count == 0
 
-    def push_all(self, items: List[Event]) -> None:
+    def push_all(self, items: list[Event]) -> None:
         self._objects.extend(items)
 
     def push(self, item: Event) -> None:

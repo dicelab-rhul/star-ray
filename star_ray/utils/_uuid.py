@@ -1,3 +1,5 @@
+"""Module implements UUID functionality that is used internally to generate unique ids for various objects (including events, agents and ambients)."""
+
 import time
 import random
 import uuid

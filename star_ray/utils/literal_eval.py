@@ -1,3 +1,5 @@
+"""Module contains functions to safely evaluate strings converting them to python code (or objects), see `literal_eval` and `literal_eval_with_ops`."""
+
 from ast import (
     Constant,
     List,
@@ -27,11 +29,7 @@ __all__ = ("literal_eval_with_ops", "literal_eval")
 
 
 def literal_eval_with_ops(node_or_string):
-    """
-    Safely evaluate an expression node or a string containing a Python
-    expression. The string or node provided may only consist of the
-    following Python literal structures: strings, bytes, numbers,
-    tuples, lists, dicts, sets, booleans, None, and basic binary operations.
+    """Safely evaluate an expression node or a string containing a Python expression. The string or node provided may only consist of the following Python literal structures: strings, bytes, numbers, tuples, lists, dicts, sets, booleans, None, and basic binary operations.
 
     Caution: A complex expression can overflow the C stack and cause a crash.
     """

@@ -1,15 +1,14 @@
-""" Module defining the `MouseButtonEvent` and `MouseMotionEvent` classes. """
+"""Module defining the `MouseButtonEvent` and `MouseMotionEvent` classes."""
 
-from typing import ClassVar, Tuple, List
-from pydantic import validator, Field
+from typing import ClassVar
+from pydantic import field_validator, Field
 from ..event import Event
 
 __all__ = ("MouseButtonEvent", "MouseMotionEvent")
 
 
 class MouseButtonEvent(Event):
-    """
-    A class representing a mouse event.
+    """A class representing a mouse event.
 
     Attributes:
         id ([int]): A unique identifier for the event.
@@ -22,9 +21,9 @@ class MouseButtonEvent(Event):
     """
 
     button: int
-    position: Tuple[float, float] | Tuple[int, int]
+    position: tuple[float, float] | tuple[int, int]
     status: int
-    target: str | List[str] | None = Field(default=None)
+    target: str | list[str] | None = Field(default=None)
 
     # static fields
     UP: ClassVar[int] = 0
@@ -35,7 +34,7 @@ class MouseButtonEvent(Event):
     BUTTON_MIDDLE: ClassVar[int] = 1
     BUTTON_RIGHT: ClassVar[int] = 2
 
-    @validator("position", pre=True, always=True)
+    @field_validator("position", mode="before")
     @classmethod
     def _validate_position(cls, value: tuple | dict | list):
         if isinstance(value, dict):
@@ -43,9 +42,9 @@ class MouseButtonEvent(Event):
         else:
             return tuple(value)
 
-    @validator("status", pre=True, always=True)
+    @field_validator("status", mode="before")
     @classmethod
-    def _validate_status(cls, value: str | int) -> int:  # pylint: disable=E0213
+    def _validate_status(cls, value: str | int) -> int:
         if isinstance(value, str):
             if "release" in value or value == "up":
                 return MouseButtonEvent.UP
@@ -68,8 +67,7 @@ class MouseButtonEvent(Event):
 
 
 class MouseMotionEvent(Event):
-    """
-    A class representing a mouse motion event.
+    """A class representing a mouse motion event.
 
     Attributes:
         id ([int]): A unique identifier for the event.
@@ -80,6 +78,6 @@ class MouseMotionEvent(Event):
         target ([str | List[str]]): The UI element that the mouse is currently over. This value is UI implementation dependent and may be None, typically it will be a unique element ID.
     """
 
-    position: Tuple[float, float] | Tuple[int, int]
-    relative: Tuple[float, float] | Tuple[int, int]
-    target: str | List[str] | None = Field(default=None)
+    position: tuple[float, float] | tuple[int, int]
+    relative: tuple[float, float] | tuple[int, int]
+    target: str | list[str] | None = Field(default=None)

@@ -1,6 +1,12 @@
+"""Package defining pub-sub related functionality.
+
+TODO describe pubsub, important classes and give an example!
+"""
+
 from ._action import Subscribe, Unsubscribe
 from ._pubsub import Subscriber, Publisher
-from ._default_publisher import TopicPublisher, EventPublisher
+from ._topic_publisher import TopicPublisher
+from ._type_publisher import TypePublisher
 
 __all__ = (
     "Subscribe",
@@ -8,5 +14,5 @@ __all__ = (
     "Subscriber",
     "Publisher",
     "TopicPublisher",
-    "EventPublisher",
+    "TypePublisher",
 )

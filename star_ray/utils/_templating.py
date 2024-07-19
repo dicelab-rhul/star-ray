@@ -5,18 +5,10 @@ import re
 from pathlib import Path
 from typing import (
     Any,
-    Dict,
-    List,
-    Tuple,
-    Mapping,
-    MutableMapping,
-    Sequence,
-    Type,
     Literal,
-    Callable,
     Optional,
-    Union,
 )
+from collections.abc import Mapping, MutableMapping, Sequence, Callable
 from jinja2 import (
     BytecodeCache,
     Environment,
@@ -63,21 +55,19 @@ __all__ = (
 
 
 class Validator(_Validator):
-
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("normalize", True)
         super().__init__(*args, **kwargs)
         self._hex_color_pattern = re.compile(r"^#?[0-9a-fA-F]{6}$")
 
     def _validate_type_color(self, value):
-        return not re.match(self._hex_color_pattern, value) is None
+        return re.match(self._hex_color_pattern, value) is not None
 
     def _validate_type_any(self, _):
         return True
 
 
 class ValidatedTemplates(Jinja2Templates):
-
     def __init__(self):
         loader = TemplateLoader()
         ALLOW_REQUEST = {"request": {"type": "any", "default": ""}}
@@ -87,7 +77,7 @@ class ValidatedTemplates(Jinja2Templates):
     def add_namespace(
         self,
         namespace: str,
-        path: str | List[str],
+        path: str | list[str],
         package_name: str = None,
         follow_links: bool = False,
     ):
@@ -106,12 +96,11 @@ class ValidatedTemplates(Jinja2Templates):
 
 
 class ValidatedTemplate(Template):
-
     def new_context(
         self,
-        vars: Optional[Dict[str, Any]] = None,
+        vars: dict[str, Any] | None = None,
         shared: bool = False,
-        locals: Optional[Mapping[str, Any]] = None,
+        locals: Mapping[str, Any] | None = None,
     ) -> Context:
         assert isinstance(self.environment, ValidatedEnvironment)
         self.environment.validate_context(self.name, vars)
@@ -119,7 +108,6 @@ class ValidatedTemplate(Template):
 
 
 class ValidatedEnvironment(Environment):
-
     EXT_SCHEMA = ".schema.json"
     EXT_CONTEXT = ".json"
 
@@ -135,19 +123,19 @@ class ValidatedEnvironment(Environment):
         variable_end_string: str = VARIABLE_END_STRING,
         comment_start_string: str = COMMENT_START_STRING,
         comment_end_string: str = COMMENT_END_STRING,
-        line_statement_prefix: Optional[str] = LINE_STATEMENT_PREFIX,
-        line_comment_prefix: Optional[str] = LINE_COMMENT_PREFIX,
+        line_statement_prefix: str | None = LINE_STATEMENT_PREFIX,
+        line_comment_prefix: str | None = LINE_COMMENT_PREFIX,
         trim_blocks: bool = TRIM_BLOCKS,
         lstrip_blocks: bool = LSTRIP_BLOCKS,
         newline_sequence: Literal["\\n", "\\r\\n", "\\r"] = NEWLINE_SEQUENCE,
         keep_trailing_newline: bool = KEEP_TRAILING_NEWLINE,
-        extensions: Sequence[Union[str, Type["Extension"]]] = (),
+        extensions: Sequence[str | type["Extension"]] = (),
         optimized: bool = True,
-        undefined: Type[
+        undefined: type[
             Undefined
         ] = StrictUndefined,  # defaults to StrictUndefined now for better validation!
-        finalize: Optional[Callable[..., Any]] = None,
-        autoescape: Union[bool, Callable[[Optional[str]], bool]] = False,
+        finalize: Callable[..., Any] | None = None,
+        autoescape: bool | Callable[[str | None], bool] = False,
         loader: Optional["BaseLoader"] = None,
         cache_size: int = 400,
         auto_reload: bool = True,
@@ -194,23 +182,20 @@ class ValidatedEnvironment(Environment):
         filename, _ = ValidatedEnvironment.split_name_suffix(name)
         # check for configuration files with the same name
         context_name: str = filename.with_suffix(
-            ValidatedEnvironment.EXT_CONTEXT).as_posix()
+            ValidatedEnvironment.EXT_CONTEXT
+        ).as_posix()
         schema_name: str = filename.with_suffix(
-            ValidatedEnvironment.EXT_SCHEMA).as_posix()
+            ValidatedEnvironment.EXT_SCHEMA
+        ).as_posix()
         try:
-            schema = json.loads(
-                super().get_template(schema_name, None, {}).render()
-            )
-            schema = always_merger.merge(
-                copy.deepcopy(self._schema_globals), schema)
+            schema = json.loads(super().get_template(schema_name, None, {}).render())
+            schema = always_merger.merge(copy.deepcopy(self._schema_globals), schema)
             validator = ValidatedEnvironment.get_validator(schema)
             self._validator_cache[name] = validator
         except TemplateNotFound:
             schema = None
         try:
-            context = json.loads(
-                super().get_template(context_name, None, {}).render()
-            )
+            context = json.loads(super().get_template(context_name, None, {}).render())
         except TemplateNotFound:
             context = None
         if schema:
@@ -219,9 +204,10 @@ class ValidatedEnvironment(Environment):
             )
         elif context:
             LOGGER.warning(
-                "Context file: %s was provided without a validation schema.", context_name)
-            context = ValidatedEnvironment._validate_context_without_schema(
-                context)
+                "Context file: %s was provided without a validation schema.",
+                context_name,
+            )
+            context = ValidatedEnvironment._validate_context_without_schema(context)
         else:
             context = dict()  # no configuration files were available
         globals = always_merger.merge(globals, context)
@@ -243,8 +229,7 @@ class ValidatedEnvironment(Environment):
         errors = ValidatedEnvironment._validate_context_keys(context)
         if errors:
             error_str = "\n    - ".join(errors)
-            raise ValueError(
-                f"Invalid context, see errors:\n    - {error_str}")
+            raise ValueError(f"Invalid context, see errors:\n    - {error_str}")
         return context
 
     @staticmethod
@@ -258,8 +243,7 @@ class ValidatedEnvironment(Environment):
         if normalize:
             context = validator.normalized(context)  # set default values etc.
             if context is None:  # there were errors in normalization
-                errors = ValidatedEnvironment._format_validator_errors(
-                    validator.errors)
+                errors = ValidatedEnvironment._format_validator_errors(validator.errors)
                 error_str = "\n    - ".join(errors)
                 raise ValueError(
                     f"Context is not valid under the provided schema. See issues below:\n    - {error_str}"
@@ -267,8 +251,7 @@ class ValidatedEnvironment(Environment):
         if validator.validate(context):
             return context
         else:
-            errors = ValidatedEnvironment._format_validator_errors(
-                validator.errors)
+            errors = ValidatedEnvironment._format_validator_errors(validator.errors)
             error_str = "\n    - ".join(errors)
             raise ValueError(
                 f"Context is not valid under the provided schema. See issues below:\n    - {error_str}"
@@ -280,8 +263,7 @@ class ValidatedEnvironment(Environment):
         for k, errs in errors.items():
             for v in errs:
                 if isinstance(v, dict):
-                    result.extend(
-                        ValidatedEnvironment._format_validator_errors(v))
+                    result.extend(ValidatedEnvironment._format_validator_errors(v))
                 elif isinstance(v, str):
                     result.append(f"Key: `{k}` {v}")
                 else:
@@ -302,13 +284,12 @@ class ValidatedEnvironment(Environment):
 
     @staticmethod
     def load_and_validate_context(schema_path: str, context_path: str = None):
-        schema_path = Path(schema_path).expanduser(
-        ).resolve().absolute().as_posix()
-        with open(schema_path, "r", encoding="utf-8") as f:
+        schema_path = Path(schema_path).expanduser().resolve().absolute().as_posix()
+        with open(schema_path, encoding="utf-8") as f:
             validator = ValidatedEnvironment.get_validator(json.load(f))
         context = None
         if context_path:
-            with open(context_path, "r", encoding="utf-8") as f:
+            with open(context_path, encoding="utf-8") as f:
                 context = json.load(f)
         return ValidatedEnvironment._validate_context_with_schema(
             validator,
@@ -329,8 +310,7 @@ class ValidatedEnvironment(Environment):
         for key, _ in context.items():
             # TODO check that the key follows jinja variable syntax
             if "-" in key:
-                errors.append(
-                    f"Invalid character '-' found in context key: '{key}'.")
+                errors.append(f"Invalid character '-' found in context key: '{key}'.")
         return errors
 
     @staticmethod
@@ -341,21 +321,17 @@ class ValidatedEnvironment(Environment):
             if isinstance(rules, dict):
                 if rules.get("type", None) == "dict":
                     # default must be specified in the nested definition
-                    errors.extend(
-                        ValidatedEnvironment._validate_context_keys(schema))
+                    errors.extend(ValidatedEnvironment._validate_context_keys(schema))
                     sub_schema = rules.get("schema", None)
                     if sub_schema:
-                        errors.extend(
-                            ValidatedEnvironment._validate_schema(sub_schema))
+                        errors.extend(ValidatedEnvironment._validate_schema(sub_schema))
                     continue  # default isnt specified at the top level here...
                 if "default" not in rules:
-                    errors.append(
-                        f"No default value specified for field: '{key}'")
+                    errors.append(f"No default value specified for field: '{key}'")
         return errors
 
 
 class TemplateLoader(BaseLoader):
-
     def __init__(self):
         super().__init__()
         self._prefix_loader = PrefixLoader({})
@@ -363,14 +339,14 @@ class TemplateLoader(BaseLoader):
     def add_namespace(
         self,
         namespace: str,
-        path: str | List[str],
+        path: str | list[str],
         *args,
         package_name: str = None,
         follow_links: bool = False,
         **kwargs,
     ):
         assert isinstance(namespace, str)
-        assert isinstance(path, (list, str))
+        assert isinstance(path, list | str)
         if isinstance(path, list):
             assert all(isinstance(p, str) for p in path)
         if package_name:
@@ -382,16 +358,16 @@ class TemplateLoader(BaseLoader):
                 path, followlinks=follow_links
             )
 
-    def get_loader(self, namespace: str) -> Tuple[BaseLoader, str]:
+    def get_loader(self, namespace: str) -> tuple[BaseLoader, str]:
         return self._prefix_loader.get_loader(namespace + "/")[0]
 
-    def get_namespaces(self) -> List[str]:
+    def get_namespaces(self) -> list[str]:
         return list(self._prefix_loader.mapping.keys())
 
-    def list_templates_in_namespace(self, namespace) -> List[str]:
+    def list_templates_in_namespace(self, namespace) -> list[str]:
         return self._prefix_loader.get_loader(namespace + "/")[0].list_templates()
 
-    def list_templates(self) -> List[str]:
+    def list_templates(self) -> list[str]:
         return self._prefix_loader.list_templates()
 
     def get_source(self, environment, template):

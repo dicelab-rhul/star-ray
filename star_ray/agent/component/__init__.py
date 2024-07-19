@@ -1,9 +1,26 @@
-from .component import Component, ComponentMeta
-from .actuator import Actuator
-from .type_routing import _TypeRouter, observe, attempt
+"""Package that defines component related functionality.
 
-from .sensor import Sensor
+`Component`s can be attached to agents allowing them to perform certain actions and receive observations. They are in essence how the agent interfaces, or "interacts" with its enviroment.
+
+Two important base classes:
+    `Sensor` : TODO
+    `Actuator` : TODO
+
+This module also defines important decorators that may be used by an `Agent` to route actions/observations to methods that it defines. This can simplify how actions/observations are taken and processed during the agent's cycle.
+
+- `@observe` : TODO
+- `@decide` : TODO
+- `@attempt` : TODO
+
+See associated documentation for further details.
+
+"""
+
+from .component import Component
+from .actuator import Actuator
+from .attempt import attempt
 from .on_awake import OnAwake
+from .sensor import Sensor
 
 __all__ = (
     "OnAwake",
@@ -12,5 +29,5 @@ __all__ = (
     "Sensor",
     "Actuator",
     "Component",
-    "_TypeRouter",
+    "TypeRouter",
 )

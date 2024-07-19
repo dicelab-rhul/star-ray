@@ -1,3 +1,5 @@
+"""Package defining common user input events."""
+
 from .keyevent import KeyEvent
 from .mouseevent import MouseButtonEvent, MouseMotionEvent
 from .joystickevent import JoyStickEvent

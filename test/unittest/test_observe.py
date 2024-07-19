@@ -1,30 +1,36 @@
+"""Unit tests for the @observe decorator."""
+
 import unittest
-from star_ray.agent.component.type_routing import _TypeRouter, observe
+from star_ray.agent import observe
+from star_ray.utils import TypeRouter
 
 
-class A:
+class A:  # noqa: D101
     pass
 
 
-class B(A):
+class B(A):  # noqa: D101
     pass
 
 
-class C(A):
+class C(A):  # noqa: D101
     pass
 
 
-class D(B, C):
+class D(B, C):  # noqa: D101
     pass
 
 
-class E:
+class E:  # noqa: D101
     pass
 
 
 class TestObserve(unittest.TestCase):
+    """@observe unit tests."""
 
-    def test_observe_type_routing(self):
+    def test_observe(self):
+        """Test the `@observe` decorator with arguments."""
+
         # Define observe-decorated functions
         @observe([A])
         def func_a(e):
@@ -35,7 +41,7 @@ class TestObserve(unittest.TestCase):
             return f"func_c: {type(e).__name__}"
 
         # Initialize TypeRouter
-        router = _TypeRouter()
+        router = TypeRouter()
         router.add(func_a)
         router.add(func_c)
 
@@ -46,7 +52,32 @@ class TestObserve(unittest.TestCase):
         self.assertEqual(router(D()), ["func_c: D"])
         self.assertEqual(router(E()), [])
 
-    def test_observe_type_routing_with_typehints(self):
+    def test_observe2(self):
+        """Test the `@observe` decorator with arguments."""
+
+        # Define observe-decorated functions
+        @observe([B])
+        def func_b(e):
+            return f"func_b: {type(e).__name__}"
+
+        @observe([C])
+        def func_c(e):
+            return f"func_c: {type(e).__name__}"
+
+        # Initialize TypeRouter
+        router = TypeRouter()
+        router.add(func_b)
+        router.add(func_c)
+
+        # Test routing for various types
+        self.assertEqual(router(A()), [])
+        self.assertEqual(router(B()), ["func_b: B"])
+        self.assertEqual(router(C()), ["func_c: C"])
+        self.assertEqual(router(D()), ["func_b: D"])
+        self.assertEqual(router(E()), [])
+
+    def test_observe_with_typehints(self):
+        """Test the `@observe` decorator using type hints."""
 
         @observe
         def func_a(e: A):
@@ -57,7 +88,7 @@ class TestObserve(unittest.TestCase):
             return f"func_ab: {type(e).__name__}"
 
         # Initialize TypeRouter
-        router = _TypeRouter()
+        router = TypeRouter()
         router.add(func_a)
         router.add(func_ab)
 

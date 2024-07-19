@@ -1,3 +1,5 @@
+"""Module implements logging functionality."""
+
 import logging
 from functools import wraps
 
@@ -8,7 +10,6 @@ LOGGER = logging.getLogger(__package__)
 
 
 class Indent:
-
     def __init__(self, spaces=2):
         self.logging_indent_level = 0
         self.logging_indent_spaces = " " * spaces
@@ -36,7 +37,6 @@ class Indent:
 
 
 class IndentFormatter(logging.Formatter):
-
     def format(self, record):
         if not hasattr(record, "indent"):
             setattr(record, "indent", LOGGER.indent.get_current_ident())

@@ -1,15 +1,16 @@
+"""TODO."""
+
 from .component import Component
 
 
 def OnAwake(cls):
-    """Decorator that will wrap an `Component` class so that it only runs on its first cycle, after which it will remove itself from the agent it is attached to."""
+    """A class decorator that will wrap an `Component` class so that it only runs on its first cycle, after which it will remove itself from the `Agent` it is attached to."""
     if not issubclass(cls, Component):
         raise TypeError(
             f"OnAwake decorator can only be applied to classes that derive {Component}."
         )
 
     class OnAwakeComponent(cls):
-
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self._first_cycle = True

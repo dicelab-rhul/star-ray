@@ -1,6 +1,6 @@
-from typing import Type, Any
+from typing import Any
 
-from pydantic import validator, Field
+from pydantic import field_validator, Field
 import ray
 
 from ..event import Action
@@ -10,11 +10,10 @@ __all__ = ("Subscribe", "Unsubscribe")
 
 
 class _SubscriptionActionBase(Action):
-
-    topic: str
+    topic: Any
     subscriber: Subscriber | None = Field(default_factory=lambda: None)
 
-    @validator("subscriber", pre=True, always=True)
+    @field_validator("subscriber", mode="before")
     @classmethod
     def _validate_subscriber(cls, subscriber: Subscriber | None):
         if subscriber is None:
@@ -24,16 +23,6 @@ class _SubscriptionActionBase(Action):
             if ctx.worker.mode:
                 return _SubscriberRemote(ctx.current_actor)
         return _SubscriberLocal(subscriber)  # uses a weak reference
-
-    @validator("topic", pre=True, always=True)
-    @classmethod
-    def _validate_topic(cls, topic: str | Type):
-        if isinstance(topic, str):
-            return topic
-        elif isinstance(topic, type):
-            return _fully_qualified_name(topic)
-        else:
-            raise TypeError(f"Invalid topic: {topic} must be a string or type.")
 
     class Config:
         arbitrary_types_allowed = True
@@ -46,7 +35,3 @@ class Subscribe(_SubscriptionActionBase):
 
 class Unsubscribe(_SubscriptionActionBase):
     pass
-
-
-def _fully_qualified_name(cls: Type[Any]):
-    return cls.__module__ + "." + cls.__qualname__

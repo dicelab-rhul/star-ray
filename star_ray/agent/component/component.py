@@ -1,60 +1,32 @@
+"""Module defining the class `Component`, see class documentation for details."""
+
 from __future__ import annotations
-from abc import ABCMeta, abstractmethod
-from typing import List, Any, TYPE_CHECKING
-from functools import wraps
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
 from ...event import Observation, Action
-from ..wrapper_observations import _Observations
+from .._wrapper_observations import _Observations
 from ...utils import int64_uuid
 
 if TYPE_CHECKING:
     from ..agent import Agent
     from ...environment import State
 
-
-__all__ = (
-    "ComponentMeta",
-    "Component",
-    "attempt",
-)
-
-# ATTEMPT_METHOD_CLS_VAR = "__attemptmethods__"
-# IS_ATTEMPT_VAR = "is_attempt"
+__all__ = ("Component",)
 
 
-# def _is_attempt_method(obj):
-#     return callable(obj) and hasattr(obj, IS_ATTEMPT_VAR)
-#     # return inspect.ismethod(obj) and hasattr(obj, IS_ATTEMPT_VAR)
-
-
-# TODO fix attempt methods, use a _TypeRouter
-class _ComponentMeta(type):
-    def __new__(cls, name, bases, dct):
-        # TODO AgentRouted is now a thing, we dont use this meta class any more
-        # Get all methods decorated with the attempt_decorator
-        # attempt_methods = [attr for _,
-        #                    attr in dct.items() if _is_attempt_method(attr)]
-        # # get attempt methods in base classes, these should not change...
-        # for base in bases:
-        #     attempt_methods.extend(getattr(base, ATTEMPT_METHOD_CLS_VAR, []))
-        # dct[ATTEMPT_METHOD_CLS_VAR] = attempt_methods
-        return super().__new__(cls, name, bases, dct)
-
-
-class ComponentMeta(ABCMeta, _ComponentMeta):
-    pass
-
-
-class Component(metaclass=ComponentMeta):
+class Component(ABC):
+    """Base class for components that may be attached to an agent. These include: `Sensor` and `Actuator`, which are used by the agent for sensing the environment and performing actions to change its state."""
 
     def __init__(self, *args, **kwargs):
+        """Constructor."""
         super().__init__(*args, **kwargs)
         self._id: int = int64_uuid()
         # this will be set by the agent when this component is added to it.
         # generally it should not be accessed directly unless you know what you are doing!
         self._agent = None
         # actions to attempt in the current cycle to produce observations
-        self._actions: List[Action] = []  # TODO allow async access here?
+        self._actions: list[Action] = []  # TODO allow async access here?
         # observations that result from taking action
         self._observations: _Observations = _Observations.empty()
 
@@ -100,31 +72,51 @@ class Component(metaclass=ComponentMeta):
         yield from filter(None, self._actions)
 
     async def aiter_observations(self):
+        """Not implemented."""
         raise NotImplementedError("TODO")
 
     async def aiter_actions(self):
+        """Not implemented."""
         raise NotImplementedError("TODO")
 
-    def __transduce__(self, events: List[Observation]) -> List[Observation]:
+    def __transduce__(self, events: list[Observation]) -> list[Observation]:
+        """Convert a list of events to another list of events. This is typically used to implement a transformation of "raw" observations that this component may receive. There is no restiction on how this transformation is done, some events may even be removed or added.
+
+        This should not be called manually, and is instead part of the agent's (or component's) cycle.
+
+        Args:
+            events (list[Observation]): events to transform
+
+        Returns:
+            list[Observation]: the transformed list of events
+        """
         return events
 
     @abstractmethod
     def __query__(self, state: State) -> None:
-        """Query the state of the environment (take an action). This should not be called manually and is instead called as part of the agents cycle.
+        """Query the state of the environment (take an action).
+
+        This should not be called manually, and is instead part of the agent's (or component's) cycle.
 
         Args:
             state (State): state of the environment.
         """
 
-    def __str__(self):
+    def __str__(self):  # noqa: D105
         return f"{self.__class__.__name__}({self._id})"
 
-    def __repr__(self):
+    def __repr__(self):  # noqa: D105
         # TODO perhaps include information about the agent this component is attached to ?
         return str(self)
 
     @staticmethod
-    def set_action_source(component: Component, actions: List[Action]):
+    def set_action_source(component: Component, actions: list[Action]):
+        """Set the `source` attribute of each action in `actions` to be the `id` of this `Component`. Typically `component` is the component that is taking the actions.
+
+        Args:
+            component (Component): that is taking the actions
+            actions (list[Action]): whoses sources should be set
+        """
         for action in actions:
             if action.source is None:
                 action.source = component.id

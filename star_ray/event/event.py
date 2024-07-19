@@ -1,4 +1,4 @@
-""" Module defining the [Event] class."""
+"""Module defining the `Event` class."""
 
 import time
 from pydantic import BaseModel, Field
@@ -9,7 +9,7 @@ EVENT_UUID_FUNC = int64_uuid
 
 
 class Event(BaseModel):
-    """An event class with a unique identifier and a timestamp.
+    """An event class with a unique identifier, timestamp and source.
 
     Attributes:
         id ([int]): A unique identifier for the event.
@@ -21,5 +21,5 @@ class Event(BaseModel):
     timestamp: float = Field(default_factory=EVENT_TIMESTAMP_FUNC)
     source: int | None = Field(default_factory=lambda: None)
 
-    class Config:
+    class Config:  # noqa: D106
         validate_assignment = True

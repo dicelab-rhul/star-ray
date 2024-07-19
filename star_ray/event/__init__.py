@@ -1,4 +1,4 @@
-"""" This module defines various events classes."""
+"""This module defines events base classes, such as `Event`, `Observation`, `Action` and various user input events."""
 
 from .event import Event
 from .user_event import (

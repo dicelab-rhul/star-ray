@@ -1,20 +1,20 @@
-from typing import Any, List, Dict, Union, Type
+# TODO check if this is used anywhere? refactor by removing!
+from typing import Any
 
 import ray
 
 __all__ = ("new_instance_local_or_remote",)
 
-_actor_class_cache: Dict[Type, ray.actor.ActorClass] = {}
+_actor_class_cache: dict[type, ray.actor.ActorClass] = {}
 
 
 def new_instance_local_or_remote(
-    cls: Type,
-    args: List[Any] = None,
-    kwargs: Dict[str, Any] = None,
+    cls: type,
+    args: list[Any] = None,
+    kwargs: dict[str, Any] = None,
     remote: bool = False,
-) -> Union[Any, ray.actor.ActorHandle]:
-    """
-    Dynamically create a local instance or a [ray] remote actor based on the given class.
+) -> Any | ray.actor.ActorHandle:
+    """Dynamically create a local instance or a [ray] remote actor based on the given class.
 
     Args:
         cls ([Type]): The class to instantiate.

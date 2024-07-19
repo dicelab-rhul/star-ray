@@ -1,7 +1,10 @@
+"""Module defines a utility class `WindowConfiguration` that may be used to configure application windows."""
+
 from pydantic import BaseModel, Field
 
 
 class WindowConfiguration(BaseModel):
+    """Configuration options for an application window."""
 
     width: int = Field(default=640)
     height: int = Field(default=480)

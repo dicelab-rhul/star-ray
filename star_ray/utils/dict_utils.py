@@ -1,9 +1,11 @@
-from typing import Dict, Any
+"""Module containing utilities for dictionaries."""
+
+from typing import Any
 
 
-def merge_nested(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> Dict[Any, Any]:
-    """
-    Recursively merges two nested dictionaries. Only merges the leaves from d2 into d1.
+def merge_nested(d1: dict[Any, Any], d2: dict[Any, Any]) -> dict[Any, Any]:
+    """Recursively merges two nested dictionaries. Only merges the leaves from d2 into d1.
+
     Args:
         d1 (dict): The target dictionary into which `d2` is merged. This dictionary is modified in place.
         d2 (dict): The source dictionary from which key-value pairs are taken. `d2` remains unmodified.
@@ -13,11 +15,11 @@ def merge_nested(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> Dict[Any, Any]:
 
     Example:
         ```
-        dict1 = {'a': 1, 'b': {'x': 2, 'y': 3}}
-        dict2 = {'b': {'y': 4, 'z': 5}, 'c': 3, 'd': {'e': 6}}
+        dict1 = {"a": 1, "b": {"x": 2, "y": 3}}
+        dict2 = {"b": {"y": 4, "z": 5}, "c": 3, "d": {"e": 6}}
         merged_dict = merge_nested_dicts(dict1, dict2)
         print(merged_dict)
-        {'a': 1, 'b': {'x': 2, 'y': 4, 'z': 5}, 'c': 3, 'd': {'e': 6}}
+        {"a": 1, "b": {"x": 2, "y": 4, "z": 5}, "c": 3, "d": {"e": 6}}
         ```
 
     """

@@ -1,4 +1,8 @@
+# Ruff stuff
+.ruff_cache/
 
+
+# Misc
 *.h5
 *.zip
 logs/
