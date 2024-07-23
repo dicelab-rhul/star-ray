@@ -6,6 +6,8 @@ from pydantic import BaseModel, Field
 class WindowConfiguration(BaseModel):
     """Configuration options for an application window."""
 
+    x: int = Field(default=0)
+    y: int = Field(default=0)
     width: int = Field(default=640)
     height: int = Field(default=480)
     title: str = Field(default="window")

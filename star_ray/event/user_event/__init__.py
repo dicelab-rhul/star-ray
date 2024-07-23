@@ -9,6 +9,7 @@ from .windowevent import (
     WindowResizeEvent,
     WindowCloseEvent,
     WindowOpenEvent,
+    ScreenSizeEvent,
 )
 
 __all__ = (
@@ -21,4 +22,5 @@ __all__ = (
     "WindowResizeEvent",
     "WindowCloseEvent",
     "WindowOpenEvent",
+    "ScreenSizeEvent",
 )

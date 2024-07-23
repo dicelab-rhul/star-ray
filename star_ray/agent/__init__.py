@@ -23,6 +23,7 @@ from .component import (
     Component,
     Sensor,
     Actuator,
+    IOSensor,
 )
 
 __all__ = (
@@ -35,5 +36,6 @@ __all__ = (
     "observe",
     "Component",
     "Sensor",
+    "IOSensor",
     "Actuator",
 )

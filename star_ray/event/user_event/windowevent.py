@@ -34,3 +34,9 @@ class WindowFocusEvent(Event):
     """Event representing a change in an application window focus."""
 
     has_focus: bool
+
+
+class ScreenSizeEvent(Event):
+    """Event indicating that the screen/monitor has a given size."""
+
+    size: tuple[float, float] | tuple[int, int]

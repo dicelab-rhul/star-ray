@@ -109,13 +109,19 @@ class Agent(ABC):
         """
         return set(self._sensors)
 
-    def get_sensors(self) -> set[Sensor]:
+    def get_sensors(self, oftype: type | None = None) -> set[Sensor]:
         """Getter for the agent's `Sensor`s.
+
+        Arguments:
+            oftype (type): type sensor(s) to get.
 
         Returns:
             Set[Sensor]: set of sensors.
         """
-        return set(self._sensors)
+        if oftype:
+            return set(filter(lambda x: isinstance(x, oftype), self._sensors))
+        else:
+            return set(self._sensors)
 
     @property
     def actuators(self) -> set[Actuator]:
@@ -126,13 +132,19 @@ class Agent(ABC):
         """
         return set(self._actuators)
 
-    def get_actuators(self) -> set[Actuator]:
+    def get_actuators(self, oftype: type | None = None) -> set[Actuator]:
         """Getter for the agent's `Actuator`s.
 
+        Arguments:
+            oftype (type): type sensor(s) to get.
+
         Returns:
-            Set[Sensor]: set of actuators.
+            Set[Actuator]: set of actuators.
         """
-        return set(self._actuators)
+        if oftype:
+            return set(filter(lambda x: isinstance(x, oftype), self._actuators))
+        else:
+            return set(self._actuators)
 
     @property
     def id(self) -> int:

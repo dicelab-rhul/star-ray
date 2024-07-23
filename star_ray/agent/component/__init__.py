@@ -21,13 +21,14 @@ from .actuator import Actuator
 from .attempt import attempt
 from .on_awake import OnAwake
 from .sensor import Sensor
+from .sensor_io import IOSensor
 
 __all__ = (
     "OnAwake",
     "attempt",
     "observe",
+    "Component",
     "Sensor",
     "Actuator",
-    "Component",
-    "TypeRouter",
+    "IOSensor",
 )

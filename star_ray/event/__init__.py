@@ -11,6 +11,7 @@ from .user_event import (
     WindowResizeEvent,
     WindowCloseEvent,
     WindowOpenEvent,
+    ScreenSizeEvent,
 )
 from .action_event import Action
 from .observation_event import (
@@ -18,6 +19,7 @@ from .observation_event import (
     ActiveObservation,
     ErrorActiveObservation,
     ErrorObservation,
+    wrap_observation,
 )
 
 __all__ = (
@@ -37,4 +39,7 @@ __all__ = (
     "WindowResizeEvent",
     "WindowCloseEvent",
     "WindowOpenEvent",
+    "ScreenSizeEvent",
+    # other
+    "wrap_observation",
 )

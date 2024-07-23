@@ -121,6 +121,10 @@ class Ambient(ABC):
         """
         return list(self._agents.values())
 
+    def get_agent_count(self) -> int:
+        """Get the number of agents currently in this ambient."""
+        return len(self._agents)
+
     async def __terminate__(self) -> None:
         """Terminate this `Ambient`. After this call `is_alive` will return False. This call will wait for all agents to be terminated via their `__terminate__` method."""
         state = _Ambient.new(self)
@@ -219,6 +223,10 @@ class _Ambient(ABC):
     def get_agents(self) -> list[_Agent]:
         pass
 
+    @abstractmethod
+    def get_agent_count(self) -> int:
+        pass
+
 
 class _AmbientRemote(_Ambient):
     def __init__(self, ambient: ray.actor.ActorHandle):
@@ -247,6 +255,9 @@ class _AmbientRemote(_Ambient):
     def get_agents(self) -> list[_Agent]:
         return ray.get(self._inner.get_agents.remote())
 
+    def get_agent_count(self) -> int:
+        return ray.get(self._inner.get_agent_count.remote())
+
 
 class _AmbientLocal(_Ambient):
     def __init__(self, ambient: Ambient):
@@ -274,3 +285,6 @@ class _AmbientLocal(_Ambient):
 
     def get_agents(self) -> list[_Agent]:
         return self._inner.get_agents()
+
+    def get_agent_count(self) -> int:
+        return self._inner.get_agent_count()

@@ -1,6 +1,7 @@
 """Module contains base classes for observations, see classes: `Observation`, `ActiveObservation`, `ErrorObservation`, `ErrorActiveObservation` documentation for details."""
 
 import traceback
+from functools import wraps
 from typing import Any
 from pydantic import field_validator, Field
 from .event import Event
@@ -25,6 +26,19 @@ class ActiveObservation(Observation):
             return value
         else:
             raise ValueError(f"Invalid action_id {value}")
+
+    @staticmethod
+    def new(action: Event, values: Any) -> "ActiveObservation":
+        """Factory method.
+
+        Args:
+            action (Event): action that lead to this observation.
+            values (Any): values that are part of this observation.
+
+        Returns:
+            ActiveObservation: the observation.
+        """
+        return ActiveObservation(action_id=action, values=values)
 
 
 class ErrorObservation(Observation):
@@ -103,3 +117,27 @@ class ErrorActiveObservation(ErrorObservation, ActiveObservation):
 
 class _ObservationError(Exception):
     """Wrapper exception class that will contain information about an exception that occured during observation computation."""
+
+
+def wrap_observation(fun):
+    """Decorator that will wrap the return value in an ActiveObservation or ErrorActiveObservation if there was an exception. Assumes that `action` is the first argument of the given function.
+
+    Args:
+        fun: function to decorate.
+    """
+
+    # TODO check that the first argument is an action!
+    @wraps(fun)
+    def _wrap(
+        self, action: Event, *args, **kwargs
+    ) -> ActiveObservation | ErrorActiveObservation:
+        try:
+            result = fun(self, action, *args, **kwargs)
+            if not isinstance(result, ActiveObservation):
+                return ActiveObservation.new(action, values=result)
+            else:
+                return result
+        except Exception as e:
+            return ErrorActiveObservation.from_exception(action, e)
+
+    return _wrap

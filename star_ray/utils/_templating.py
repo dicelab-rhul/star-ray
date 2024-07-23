@@ -204,8 +204,7 @@ class ValidatedEnvironment(Environment):
             )
         elif context:
             LOGGER.warning(
-                "Context file: %s was provided without a validation schema.",
-                context_name,
+                f"Context file: {context_name} was provided without a validation schema.",
             )
             context = ValidatedEnvironment._validate_context_without_schema(context)
         else:
