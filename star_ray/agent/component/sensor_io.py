@@ -1,4 +1,4 @@
-"""Module defines the :class:`IOSensor` which represents a senors that gets its observations from a device. These sensors do not read the environment state, instead they may read a file, grab user input, or perform some other IO READ operation."""
+"""Module defines the `IOSensor` which represents a senors that gets its observations from a device. These sensors do not read the environment state, instead they may read a file, grab user input, or perform some other IO READ operation."""
 
 from __future__ import annotations
 from typing import Any, TYPE_CHECKING

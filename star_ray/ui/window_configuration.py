@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class WindowConfiguration(BaseModel):
-    """Configuration options for an application window."""
+    """Window Configuration."""
 
     x: int = Field(default=0)
     y: int = Field(default=0)
