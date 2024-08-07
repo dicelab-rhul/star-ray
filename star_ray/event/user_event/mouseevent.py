@@ -15,9 +15,9 @@ class MouseButtonEvent(Event):
         timestamp ([float]): The timestamp (in seconds since UNIX epoch) when the event instance is created.
         source ([int]): A unique identifier for the source of this event.
         button ([int]): The mouse button involved in the event (1 for left click, 2 for middle click, 3 for right click, etc.).
-        position ([tuple]): The (x, y) coordinates of the mouse event.
+        position ([tuple[float, float] | tuple[int | int]]): The (x, y) coordinates of the mouse event.
         status ([int]): The status of the event (UP = 0, DOWN = 1, CLICK = 2).
-        target ([str]): The UI element that was clicked on. This value is UI implementation dependent and may be None, typically it will be a unique element ID.
+        target ([str | list[str]]): The UI element that was clicked on. This value is UI implementation dependent and may be None, typically it will be a unique element ID.
     """
 
     button: int

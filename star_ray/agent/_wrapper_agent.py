@@ -92,7 +92,7 @@ class _Agent(ABC):
         pass
 
     @abstractmethod
-    def __terminate__(self) -> _Future:
+    def __terminate__(self, state: State) -> _Future:
         pass
 
     @abstractmethod
@@ -127,8 +127,8 @@ class _AgentWrapperRemote(_Agent):
     def __execute__(self, state: State) -> _Future:
         return _Future.call_remote(self._inner.__execute__, state)
 
-    def __terminate__(self) -> _Future:
-        return _Future.call_remote(self._inner.__terminate__)
+    def __terminate__(self, state: State) -> _Future:
+        return _Future.call_remote(self._inner.__terminate__, state)
         # TODO?
         # ray.kill(self._inner, no_restart=True)
 
@@ -160,8 +160,8 @@ class _AgentWrapperLocal(_Agent):
     def __execute__(self, state: State) -> _Future:
         return _Future.call_sync(self._inner.__execute__, state)
 
-    def __terminate__(self):
-        return _Future.call_sync(self._inner.__terminate__)
+    def __terminate__(self, state: State) -> _Future:
+        return _Future.call_sync(self._inner.__terminate__, state)
 
     def get_inner(self):
         return self._inner
@@ -191,5 +191,5 @@ class _AgentWrapperLocalAsync(_AgentWrapperLocal):
     def __execute__(self, state: State) -> _Future:
         return _Future.call_async(self._inner.__execute__, state)
 
-    def __terminate__(self):
-        return _Future.call_async(self._inner.__terminate__)
+    def __terminate__(self, state: State) -> _Future:
+        return _Future.call_async(self._inner.__terminate__, state)
