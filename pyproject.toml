@@ -23,7 +23,7 @@ xml = [
     "star_ray_xml>=0.0.6"
 ]
 pygame = [
-    "star_ray_pygame>=0.0.6"
+    "star_ray_pygame>=0.0.8"
 ]
 
 [build-system]
