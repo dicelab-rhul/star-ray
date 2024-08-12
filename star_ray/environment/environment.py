@@ -54,6 +54,8 @@ class Environment:
             for task in done:
                 try:
                     task.result()
+                except asyncio.CancelledError:
+                    pass
                 except Exception as e:
                     await cancel(pending)
                     raise e
