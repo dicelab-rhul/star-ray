@@ -1,6 +1,6 @@
 [project]
 name = "star_ray"
-version = "0.0.6"
+version = "0.0.7"
 description = "A multi-agent simulation platform based on the distributed computing platform `ray`."
 authors = [{name = "Benedict Wilkins", email = "benrjw@gmail.com"}]
 license = { file = "LICENSE" }
@@ -20,7 +20,7 @@ Repository = "https://github.com/dicelab-rhul/star-ray"
 
 [project.optional-dependencies]
 xml = [
-    "star_ray_xml>=0.0.5"
+    "star_ray_xml>=0.0.6"
 ]
 pygame = [
     "star_ray_pygame>=0.0.6"
