@@ -37,11 +37,36 @@ class Environment:
     def run(self):
         """Entry point of the simulation, this call is blocking."""
 
+        async def cancel(tasks: list[asyncio.Task], timeout: float = 1.0):
+            for task in tasks:
+                task.cancel()
+                try:
+                    await asyncio.wait_for(task, timeout=timeout)
+                except asyncio.CancelledError:
+                    pass  # Ignore the CancelledError exception
+                except asyncio.TimeoutError:
+                    _LOGGER.warning(f"Task: {task} timed out ({timeout}/s) on cancel")
+
+        async def _run_wait(tasks: list[asyncio.Task]):
+            done, pending = await asyncio.wait(
+                tasks, return_when=asyncio.FIRST_COMPLETED
+            )
+            for task in done:
+                try:
+                    task.result()
+                except Exception as e:
+                    await cancel(pending)
+                    raise e
+            if not self._ambient.is_alive:
+                await cancel(pending)
+            return pending
+
         async def _run():
             event_loop = asyncio.get_event_loop()
             await self.__initialise__(event_loop)
-            _LOGGER.debug("Environment running...")
-            await asyncio.gather(*self.get_schedule())
+            pending = self.get_schedule()
+            while pending:
+                pending = await _run_wait(pending)
 
         asyncio.run(_run())
 

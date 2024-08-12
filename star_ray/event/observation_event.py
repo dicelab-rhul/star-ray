@@ -1,6 +1,8 @@
 """Module contains base classes for observations, see classes: `Observation`, `ActiveObservation`, `ErrorObservation`, `ErrorActiveObservation` documentation for details."""
 
+import importlib
 import traceback
+from functools import lru_cache
 from functools import wraps
 from typing import Any
 from pydantic import field_validator, Field
@@ -55,8 +57,10 @@ class ErrorObservation(Observation):
     ```
     """
 
-    exception_type: str
-    traceback_message: str
+    exception_type: str  # fully qualified name of the exception type
+    # list of arguments that came with the exception (these are retrieved via exception.__dict__)
+    exception_args: dict[str, Any]  # TODO Any must be serializable...
+    traceback_message: str  # traceback message of the exception
 
     def __str__(self):  # noqa: D105
         return f"ErrorResponse(\nsource={self.source},\n{self.traceback_message}\n)"
@@ -69,6 +73,21 @@ class ErrorObservation(Observation):
         """
         return _ObservationError(f"\n{self.exception_type}:\n{self.traceback_message}")
 
+    def resolve_exception_type(self) -> type:
+        """Attempt to resolve the actual type of the exception that caused this error observation.
+
+        Raises:
+            TypeError: if the type could not be resolved.
+
+        Returns:
+            type: the exception type
+        """
+        etype = get_type_by_fully_qualified_name(self.exception_type)
+        if etype is None:
+            raise TypeError(f"Failed to resolve exception type: {self.exception_type}")
+        else:
+            return etype
+
     def from_exception(exception: Exception) -> "ErrorObservation":
         """Factory method that will build an instance from an `Exception`.
 
@@ -77,7 +96,7 @@ class ErrorObservation(Observation):
         Returns:
             ErrorActiveObservation: the error observation
         """
-        exception_type = exception.__class__.__name__
+        exception_type = get_fully_qualified_name(exception)
         traceback_message = "".join(
             traceback.format_exception(
                 type(exception), value=exception, tb=exception.__traceback__
@@ -85,6 +104,7 @@ class ErrorObservation(Observation):
         )
         return ErrorObservation(
             exception_type=exception_type,
+            exception_args=exception.__dict__,  # TODO deepcopy?
             traceback_message=traceback_message,
         )
 
@@ -102,7 +122,7 @@ class ErrorActiveObservation(ErrorObservation, ActiveObservation):
         Returns:
             ErrorActiveObservation: the error observation
         """
-        exception_type = exception.__class__.__name__
+        exception_type = get_fully_qualified_name(exception)
         traceback_message = "".join(
             traceback.format_exception(
                 type(exception), value=exception, tb=exception.__traceback__
@@ -111,6 +131,7 @@ class ErrorActiveObservation(ErrorObservation, ActiveObservation):
         return ErrorActiveObservation(
             action_id=action,
             exception_type=exception_type,
+            exception_args=exception.__dict__,  # TODO deepcopy?
             traceback_message=traceback_message,
         )
 
@@ -141,3 +162,19 @@ def wrap_observation(fun):
             return ErrorActiveObservation.from_exception(action, e)
 
     return _wrap
+
+
+@lru_cache(maxsize=32)
+def get_type_by_fully_qualified_name(fq_name: str) -> type | None:
+    """Get type by its fully qualified name, uses `importlib` internally to do this. The result will be cached as this involves importing modules to locate the type."""
+    module_name, type_name = fq_name.rsplit(".", 1)
+    module = importlib.import_module(module_name)
+    return getattr(module, type_name, None)
+
+
+def get_fully_qualified_name(obj: Any) -> str:
+    """Get the fully qualified name of a class from an instance of the class."""
+    module = obj.__class__.__module__
+    if module is None or module == str.__class__.__module__:
+        return obj.__class__.__name__  # Built-in types
+    return module + "." + obj.__class__.__name__
