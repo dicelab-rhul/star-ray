@@ -1,6 +1,6 @@
 # Star Ray
 
-star-ray is a multi-agent simulation platform built on top of [Ray]([https://www.ray.io/](https://github.com/ray-project/ray).
+star-ray is an experimental multi-agent simulation platform that supports the development of AI agents and their environments.
 
 ### Why Star? 
 
@@ -8,7 +8,7 @@ star-ray is a multi-agent simulation platform built on top of [Ray]([https://www
 
 ### Why Ray?
 
-_Ray is a unified framework for scaling AI and Python applications. Ray consists of a core distributed runtime and a set of AI libraries for simplifying ML compute_
+_Ray is a unified framework for scaling AI and Python applications. Ray consists of a core distributed runtime and a set of AI libraries for simplifying [Machine Learning] compute._
 
 Developing robust distributed systems is **hard**, rather than reinvent the wheel we decided to make use of Ray - a powerful distributed systems package that is widely used in the AI/ML community. It has a convenient API which is abstract enough to fit well with existing GOLEM concepts. 
 
@@ -24,3 +24,5 @@ Star-ray implements: **sensors**, **actuators**, an event system (**actions** an
 
 Official documentation is coming soon, if you wish to get started with star-ray before this check out the following package(s) for inspiration:
 - [icua2](https://github.com/dicelab-rhul/icua2)
+
+or contact the owners of this repo.
