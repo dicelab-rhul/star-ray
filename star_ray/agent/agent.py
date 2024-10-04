@@ -6,10 +6,14 @@ from abc import abstractmethod, ABC
 from .component import Sensor, Actuator, Component
 from ..utils import int64_uuid
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
     from ..environment import State
+
+
+S = TypeVar("S", bound=Sensor)
+A = TypeVar("A", bound=Actuator)
 
 
 class Agent(ABC):
@@ -109,7 +113,7 @@ class Agent(ABC):
         """
         return set(self._sensors)
 
-    def get_sensors(self, oftype: type | None = None) -> set[Sensor]:
+    def get_sensors(self, oftype: type[S] | None = None) -> set[S]:
         """Getter for the agent's `Sensor`s.
 
         Arguments:
@@ -132,7 +136,7 @@ class Agent(ABC):
         """
         return set(self._actuators)
 
-    def get_actuators(self, oftype: type | None = None) -> set[Actuator]:
+    def get_actuators(self, oftype: type[A] | None = None) -> set[A]:
         """Getter for the agent's `Actuator`s.
 
         Arguments:

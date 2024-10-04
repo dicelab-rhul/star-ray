@@ -90,7 +90,6 @@ class Environment:
 
     async def _loop(self):
         """Default schedule."""
-        # await self.initialise_agents()
         running = True
         while running:
             running = await self.step()
