@@ -9,6 +9,7 @@ def int64_uuid() -> int:
     timestamp = int(time.time() * 1000)  # Convert current time to milliseconds
     rand_number = random.getrandbits(32)  # Generate a 32-bit random number
     unique_id = (timestamp << 32) | rand_number  # Combine timestamp and random number
+    unique_id &= 0xFFFFFFFFFFFFFFFF  # Ensure the result is a 64-bit unsigned integer
     return unique_id
 
 

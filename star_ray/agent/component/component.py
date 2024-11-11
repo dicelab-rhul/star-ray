@@ -118,5 +118,20 @@ class Component(ABC):
             actions (list[Action]): whoses sources should be set
         """
         for action in actions:
-            if action.source is None:
-                action.source = component.id
+            # if action.source is None:
+            # TODO this should be forced...?
+            action.source = (component.id << 64) | component._agent.id
+
+    @staticmethod
+    def unpack_source(action: Action):
+        """Unpack the source of an action into the component id and agent id.
+
+        Args:
+            action (Action): action with source to unpack
+
+        Returns:
+            tuple[int, int]: (component id, agent id)
+        """
+        component_id = action.source >> 64
+        agent_id = action.source & 0xFFFFFFFFFFFFFFFF
+        return component_id, agent_id
