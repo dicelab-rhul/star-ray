@@ -1,6 +1,6 @@
 [project]
 name = "star_ray"
-version = "0.0.7"
+version = "0.0.8"
 description = "A multi-agent simulation platform based on the distributed computing platform `ray`."
 authors = [{name = "Benedict Wilkins", email = "benrjw@gmail.com"}]
 license = { file = "LICENSE" }
